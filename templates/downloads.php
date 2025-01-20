@@ -163,9 +163,9 @@ if ($downloadList) {
     $escaped_status = htmlspecialchars($dl['status'], ENT_QUOTES, 'UTF-8');
     $escaped_ndx = htmlspecialchars($dl['id'], ENT_QUOTES, 'UTF-8');
 ?>
-      <li data-ndx="<?php echo $escaped_ndx?>">
-        <strong><?php echo $escaped_dl; ?></strong>
-        <span><?php echo $escaped_status; ?></span>
+      <li data-ndx="<?= $escaped_ndx?>">
+        <strong><?= $escaped_dl; ?></strong>
+        <span><?= $escaped_status; ?></span>
       </li>
 <?php
   }
