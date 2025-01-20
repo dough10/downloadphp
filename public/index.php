@@ -14,10 +14,6 @@ use App\Helpers;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$dbFile = $fileDir . '/downloads.db';
-
-$database = new Db($dbFile);
-
 $app = AppFactory::create();
 
 $app->add(function (Request $request, RequestHandler $handler) use ($app) {
@@ -31,6 +27,10 @@ $app->add(function (Request $request, RequestHandler $handler) use ($app) {
   $_SESSION['username'] = Helpers\decodeAuthHeader($header);
   return $handler->handle($request);
 });
+
+$dbFile = $fileDir . '/' . $_SESSION['username'] . 'downloads.db';
+
+$database = new Db($dbFile);
 
 /**
  * will mark a pending download with a completed status
