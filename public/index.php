@@ -74,7 +74,7 @@ $app->post('/reset', function (Request $request, Response $response, $args) use 
 });
 
 $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database) {
-  $renderer = new PhpRenderer(__DIR__ . '/../templates');
+  $renderer = new PhpRenderer(__DIR__ . '/../resources/templates');
   $viewData = [
     'host' => $_SERVER['HTTP_HOST'],
     'username' => $_SESSION['username'],
