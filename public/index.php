@@ -58,8 +58,7 @@ $app->get('/files/{file}', function (Request $request, Response $response, $args
   return $response;
 });
 
-$app->post('/request-file/{file}', function (Request $request, Response $response, $args) {
-  global $fileDir;
+$app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($fileDir) {
   $file = $fileDir . '/' . $args['file'];
   if (!file_exists($file)) {
     $body = json_encode(array('error'=> 'File not found'));
@@ -74,8 +73,7 @@ $app->post('/request-file/{file}', function (Request $request, Response $respons
   return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
 });
 
-$app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) {
-  global $database;
+$app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database) {
   try {
     $status = filter_var($args['status'], FILTER_SANITIZE_STRING);
     $ndx = filter_var($args['ndx'], FILTER_SANITIZE_NUMBER_INT);
@@ -92,8 +90,7 @@ $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $
   }
 });
 
-$app->post('/reset', function (Request $request, Response $response, $args) {
-  global $database;
+$app->post('/reset', function (Request $request, Response $response, $args) use ($database) {
   try {
     $database->clearDownloads();
     $response->getBody()->write(json_encode($database->getDownloads()));
@@ -104,9 +101,7 @@ $app->post('/reset', function (Request $request, Response $response, $args) {
   }
 });
 
-$app->get('/', function (Request $request, Response $response, $args) {
-  global $database;
-  global $fileDir;
+$app->get('/', function (Request $request, Response $response, $args) use ($database, $fileDir) {
   $renderer = new PhpRenderer(__DIR__ . '/../templates');
   $viewData = [
     'host' => $_SERVER['HTTP_HOST'],
