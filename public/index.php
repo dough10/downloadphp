@@ -86,7 +86,7 @@ $app->post('/request-file/{file}', function (Request $request, Response $respons
     return $response->withStatus(404, 'File not found');
   }
   global $database;
-  error_log("Download request: " . $_POST['file'] . " by user: " . '**stand in for username**' . "@" . $_SERVER['REMOTE_ADDR'] . " User-Agent: " . $_SERVER['HTTP_USER_AGENT']);
+  error_log("Download request: " . $args['file'] . " by user: " . '**stand in for username**' . "@" . $_SERVER['REMOTE_ADDR'] . " User-Agent: " . $_SERVER['HTTP_USER_AGENT']);
   $ndx = $database->insertDownloadEntry($file);
   $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads()];
   $response->getBody()->write(json_encode($retData));
