@@ -28,9 +28,9 @@ $app->add(function (Request $request, RequestHandler $handler) use ($app) {
   return $handler->handle($request);
 });
 
-$dbFile;
+$dbFile = $fileDir . '/downloads.db';
 
-$database;
+$database = new Db($dbFile);
 
 /**
  * will mark a pending download with a completed status
@@ -127,8 +127,6 @@ $app->post('/reset', function (Request $request, Response $response, $args) {
 $app->get('/', function (Request $request, Response $response, $args) {
   global $database;
   global $fileDir;
-  $dbFile = $fileDir . '/' . $_SESSION['username'] . '_downloads.db';
-  $database = new Db($dbFile);
   $renderer = new PhpRenderer(__DIR__ . '/../templates');
   $viewData = [
     'host' => $_SERVER['HTTP_HOST'],
