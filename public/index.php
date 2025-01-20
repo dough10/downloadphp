@@ -14,7 +14,7 @@ use App\Helpers;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$dbFile = 'downloads.db';
+$dbFile = $fileDir . '/downloads.db';
 
 $database = new Db($dbFile);
 
