@@ -127,7 +127,7 @@ $app->post('/reset', function (Request $request, Response $response, $args) {
 $app->get('/', function (Request $request, Response $response, $args) {
   global $database;
   global $fileDir;
-  $dbFile = $fileDir . '/' . $_SESSION['username'] . 'downloads.db';
+  $dbFile = $fileDir . '/' . $_SESSION['username'] . '_downloads.db';
   $database = new Db($dbFile);
   $renderer = new PhpRenderer(__DIR__ . '/../templates');
   $viewData = [
