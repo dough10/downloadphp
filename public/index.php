@@ -18,12 +18,6 @@ $app = AppFactory::create();
 
 $app->add(function (Request $request, RequestHandler $handler) use ($app) {
   $header = $request->getHeaderLine('Authorization');
-  // if (empty($header)) {
-  //   $payload = json_encode(['error' => 'Unauthorized'], JSON_PRETTY_PRINT);
-  //   $response = $app->getResponseFactory()->createResponse();
-  //   $response->getBody()->write($payload);
-  //   return $response->withStatus(401);
-  // }
   $_SESSION['username'] = Helpers\decodeAuthHeader($header);
   return $handler->handle($request);
 });
@@ -76,7 +70,7 @@ $app->get('/files/{file}', function (Request $request, Response $response, $args
   }
   $mimeType = mime_content_type($file);
   if (!$mimeType) {
-      $mimeType = 'application/octet-stream';
+    $mimeType = 'application/octet-stream';
   }
   $response = $response->withHeader('Content-Type', $mimeType);
   $response->getBody()->write(file_get_contents($file));
