@@ -14,7 +14,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $username = 'dough10';
 
-$dbFile = getenv('HOME') . '/' . $username . '_downloads.db';
+$dbFile = '../' . $username . '_downloads.db';
 
 $database = new Db($dbFile);
 
