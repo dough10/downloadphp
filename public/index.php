@@ -10,6 +10,8 @@ require_once '../src/Helpers/Utils.php';
 use App\Models\Db;
 use App\Helpers;
 
+echo 'env home: ' . getenv('HOME');
+
 require __DIR__ . '/../vendor/autoload.php';
 
 $dbFile = 'downloads.db';
@@ -34,6 +36,7 @@ $app->add(function (Request $request, RequestHandler $handler) use ($app) {
  * will mark a pending download with a completed status
  * 
  * @param string $ndx
+ * @param string $status
  * 
  * @return void
  */
