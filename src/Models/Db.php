@@ -7,17 +7,16 @@ use Exception;
 
 class Db {
   private $pdo;
+  private $appSettings = require __DIR__ .'/../config/settings.php';
 
   /**
    * creates sqlite db file
    * 
-   * @param string $dbFilename
-   * 
    * @return void
    */
-  public function __construct($dbFilename) {
+  public function __construct() {
     try {
-      $this->pdo = new PDO('sqlite:' . $dbFilename);
+      $this->pdo = new PDO($this->appSettings['database']['dsn']);
       $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $createTableQuery = "CREATE TABLE IF NOT EXISTS downloads (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT NOT NULL);";
       $this->pdo->exec($createTableQuery);
@@ -88,6 +87,8 @@ class Db {
    * @return void
    */
   public function updateDownloadStatus($id, $status) {
+    $id = validateAndSanitizeId($id);
+    $status = filter_var($status, FILTER_SANITIZE_STRING);
     try {
       $query = 'UPDATE downloads SET status = :status WHERE id = :id';
       $stmt = $this->pdo->prepare($query);
@@ -129,6 +130,25 @@ class Db {
       throw new Exception('Invalid ID provided');
     }
     return (int)$id; 
+  }
+
+  /**
+   * will mark a pending download with a completed status
+   * 
+   * @param string $ndx
+   * @param string $status
+   * 
+   * @return void
+   */
+  public function downloadStatusChanged($ndx, $status) {
+    $ndx = $this->validateAndSanitizeId($ndx);
+    $status = filter_var($status, FILTER_SANITIZE_STRING);
+    return match($status) {
+      'true' => $this->updateDownloadStatus($ndx, 'complete'),
+      'canceled' => $this->updateDownloadStatus($ndx, 'canceled'),
+      'failed' => $this->updateDownloadStatus($ndx, 'failed'),
+      default => throw new Exception('Invalid completed status.'),
+    };
   }
 
   /**
