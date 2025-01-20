@@ -16,7 +16,7 @@ class Db {
    */
   public function __construct() {
     try {
-      $this->appSettings = require __DIR__ .'/../config/settings.php';
+      $this->appSettings = require __DIR__ .'/../../config/settings.php';
       $this->pdo = new PDO($this->appSettings['database']['dsn']);
       $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $createTableQuery = "CREATE TABLE IF NOT EXISTS downloads (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT NOT NULL);";
