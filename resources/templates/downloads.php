@@ -1,6 +1,6 @@
 <?php 
 
-$settings = require __DIR__ ."/../config/settings.php";
+$settings = require __DIR__ . "/../../config/settings.php";
 
 /**
  * makes bytes readable by humans

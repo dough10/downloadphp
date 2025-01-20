@@ -11,8 +11,10 @@ use App\Helpers;
 
 require_once '../src/Helpers/Utils.php';
 require __DIR__ . '/../vendor/autoload.php';
+$settings = require __DIR__ . '/../config/settings.php';
 
-$settings = require __DIR__ .'/../config/settings.php';
+echo $settings;
+
 $app = AppFactory::create();
 $database = new Db();
 
