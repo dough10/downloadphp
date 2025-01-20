@@ -12,8 +12,6 @@ use App\Helpers;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$username = 'dough10';
-
 $dbFile = 'downloads.db';
 
 $database = new Db($dbFile);
