@@ -7,10 +7,10 @@ use Slim\Factory\AppFactory;
 
 require_once '../src/Helpers/Utils.php';
 
+$fileDir = '/downloads';
+
 use App\Models\Db;
 use App\Helpers;
-
-echo 'env home: ' . getenv('HOME');
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -69,7 +69,8 @@ $app->get('/js/{file}', function (Request $request, Response $response, $args) {
 });
 
 $app->get('/files/{file}', function (Request $request, Response $response, $args) {
-  $file = getenv('HOME') . '/downloads/' . $args['file'];
+  global $fileDir;
+  $file = $fileDir . '/' . $args['file'];
   if (!file_exists($file)) {
     return $response->withStatus(404, 'File Not Found');
   }
@@ -83,7 +84,8 @@ $app->get('/files/{file}', function (Request $request, Response $response, $args
 });
 
 $app->post('/request-file/{file}', function (Request $request, Response $response, $args) {
-  $file = getenv('HOME') . '/downloads/' . $args['file'];
+  global $fileDir;
+  $file = $fileDir . '/' . $args['file'];
   if (!file_exists($file)) {
     $body = json_encode(array('error'=> 'File not found'));
     $response->getBody()->write($body);
@@ -124,12 +126,12 @@ $app->post('/reset', function (Request $request, Response $response, $args) {
 
 $app->get('/', function (Request $request, Response $response, $args) {
   global $database;
-  global $username;
+  global $fileDir;
   $renderer = new PhpRenderer(__DIR__ . '/../templates');
   $viewData = [
     'host' => $_SERVER['HTTP_HOST'],
     'username' => $_SESSION['username'],
-    'files' => Helpers\generateFileList(getenv('HOME') . '/downloads', Helpers\allowedExtensions),
+    'files' => Helpers\generateFileList($fileDir, Helpers\allowedExtensions),
     'downloadList' => $database->getDownloads()
   ];
   return $renderer->render($response, 'downloads.php', $viewData);
