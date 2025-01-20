@@ -139,6 +139,6 @@ class Db {
    * @return string
    */
   private function trimPath($fullpath) {
-    return str_replace(getenv('HOME') . "/downloads/","", $fullpath);
+    return str_replace("/downloads/","", $fullpath);
   }
 }
