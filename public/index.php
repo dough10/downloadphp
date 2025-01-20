@@ -16,7 +16,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $app = AppFactory::create();
 
-$app->add(function (Request $request, RequestHandler $handler) use ($app) {
+$app->add(function (Request $request, RequestHandler $handler) {
   $header = $request->getHeaderLine('Authorization');
   $_SESSION['username'] = Helpers\decodeAuthHeader($header);
   return $handler->handle($request);
