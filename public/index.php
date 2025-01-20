@@ -14,7 +14,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 $username = 'dough10';
 
-$dbFile = $username . '_downloads.db';
+$dbFile = 'downloads.db';
 
 $database = new Db($dbFile);
 
