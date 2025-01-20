@@ -44,26 +44,7 @@ function downloadComplete($ndx, $status) {
   };
 }
 
-$app->get('/css/{file}', function (Request $request, Response $response, $args) {
-  $file = __DIR__ . '/../public/css/' . $args['file'];
-  if (!file_exists($file)) {
-    return $response->withStatus(404, 'File Not Found');
-  }
-  $response->getBody()->write(file_get_contents($file));
-  return $response->withHeader('Content-Type', 'text/css');
-});
-
-$app->get('/js/{file}', function (Request $request, Response $response, $args) {
-  $file = __DIR__ . '/../public/js/' . $args['file'];
-  if (!file_exists($file)) {
-    return $response->withStatus(404, 'File Not Found');
-  }
-  $response->getBody()->write(file_get_contents($file));
-  return $response->withHeader('Content-Type', 'application/javascript');
-});
-
-$app->get('/files/{file}', function (Request $request, Response $response, $args) {
-  global $fileDir;
+$app->get('/files/{file}', function (Request $request, Response $response, $args) use ($fileDir) {
   $file = $fileDir . '/' . $args['file'];
   if (!file_exists($file)) {
     return $response->withStatus(404, 'File Not Found');
