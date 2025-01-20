@@ -7,7 +7,7 @@ use Exception;
 
 class Db {
   private $pdo;
-  private $appSettings = require __DIR__ .'/../config/settings.php';
+  private $appSettings;
 
   /**
    * creates sqlite db file
@@ -16,6 +16,7 @@ class Db {
    */
   public function __construct() {
     try {
+      $this->appSettings = require __DIR__ .'/../config/settings.php';
       $this->pdo = new PDO($this->appSettings['database']['dsn']);
       $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $createTableQuery = "CREATE TABLE IF NOT EXISTS downloads (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT NOT NULL);";
