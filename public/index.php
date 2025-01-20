@@ -96,7 +96,12 @@ $app->post('/request-file/{file}', function (Request $request, Response $respons
 $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) {
   global $database;
   try {
-    downloadComplete($args['ndx'], $args['status']);
+    $status = filter_var($args['status'], FILTER_SANITIZE_STRING);
+    $ndx = filter_var($args['ndx'], FILTER_SANITIZE_NUMBER_INT);
+    if (!is_numeric($ndx) || $ndx <= 0) {
+      throw new Exception('Invalid ndx value');
+    }
+    downloadComplete($ndx, $status);
     $response->getBody()->write(json_encode($database->getDownloads()));
     return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
   } catch(Exception $e) {
