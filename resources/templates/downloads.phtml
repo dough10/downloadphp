@@ -64,7 +64,7 @@ if (count($files) === 0) {
 <?php
 }
 foreach ($files as $file) {
-  $formattedSize = formatFileSize($file['size']);
+  $formattedSize = Helpers\formatFileSize($file['size']);
 
   $escaped_name = htmlspecialchars($file['name'], ENT_QUOTES, $settings['app']['encoding']);
   $escaped_size = htmlspecialchars($formattedSize, ENT_QUOTES, $settings['app']['encoding']);
