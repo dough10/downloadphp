@@ -72,7 +72,7 @@ return function (App $app) {
     }
     try {
       $ndx = $database->insertDownloadEntry($file);
-      $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ' logged as Index: ' . $ndx);
+      $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ' id: ' . $ndx);
       $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads()];
       $response->getBody()->write(json_encode($retData));
       return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
