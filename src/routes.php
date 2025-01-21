@@ -73,6 +73,6 @@ return function (App $app) {
       'files' => Helpers\generateFileList($settings['app']['file-path'], Helpers\allowedExtensions),
       'downloadList' => $database->getDownloads()
     ];
-    return $renderer->render($response, 'downloads.php', $viewData);
+    return $renderer->render($response, 'downloads.phtml', $viewData);
   });
 };
