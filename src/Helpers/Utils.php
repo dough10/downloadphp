@@ -20,32 +20,29 @@ function generateFileList($dir, $allowedExtensions) {
         continue;
       }
 
-      // file is not a child of the directory containing this file
       $filePath = realpath($dir . DIRECTORY_SEPARATOR . $entry);
       if (strpos($filePath, $dir) !== 0) {
         continue;
       }
 
-      // file is not an allowed type
       $fileExtension = pathinfo($entry, PATHINFO_EXTENSION);
       if (!in_array($fileExtension, $allowedExtensions)) {
         continue;
       }
 
-      // file is hidden
       if (strpos($entry, '.') === 0) {
         continue;
       }
 
-      // build list of files in this directory, that are not hidden and of the correct file extension 
-      if (is_file($filePath)) {
-        $files[] = [
-          'name' => $entry,
-          'path' => basename($filePath),
-          'size' => filesize($filePath),
-          'modified' => filemtime($filePath) 
-        ];
+      if (!is_file($filePath)) {
+        continue;
       }
+      $files[] = [
+        'name' => $entry,
+        'path' => basename($filePath),
+        'size' => filesize($filePath),
+        'modified' => filemtime($filePath) 
+      ];
     }
     closedir($handle);
 
