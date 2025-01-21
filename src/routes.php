@@ -116,16 +116,22 @@ return function (App $app) {
   });
   
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
-    $renderer = new PhpRenderer(__DIR__ . '/../resources/templates');
-    $viewData = [
-      'host' => $_SERVER['HTTP_HOST'],
-      'username' => $_SESSION['username'],
-      'allowedExtensions' => $settings['app']['allowed-extensions'],
-      'files' => Helpers\generateFileList($settings['app']['file-path'], $settings['app']['allowed-extensions']),
-      'downloadList' => $database->getDownloads()
-    ];
-    $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
-    return $renderer->render($response, 'downloads.phtml', $viewData);
+    try {
+      $renderer = new PhpRenderer(__DIR__ . '/../resources/templates');
+      $viewData = [
+        'host' => $_SERVER['HTTP_HOST'],
+        'username' => $_SESSION['username'],
+        'allowedExtensions' => $settings['app']['allowed-extensions'],
+        'files' => Helpers\generateFileList($settings['app']['file-path'], $settings['app']['allowed-extensions']),
+        'downloadList' => $database->getDownloads()
+      ];
+      $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
+      return $renderer->render($response, 'downloads.phtml', $viewData);
+    } catch(Exception $e) {
+      $logger->error('Error rendering page: ' . $e->getMessage());
+      $response->getBody()->write(json_encode(array('error'=> $e->getMessage())));
+      return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+    }
   });
 
   $app->any('/{routes:.+}', function (Request $request, Response $response) use ($logger) {
