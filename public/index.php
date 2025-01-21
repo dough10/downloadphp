@@ -6,6 +6,8 @@ require_once '../src/Helpers/Utils.php';
 require __DIR__ . '/../vendor/autoload.php';
 $settings = require __DIR__ . '/../config/settings.php';
 
+session_start();
+
 $container = new Container();
 AppFactory::setContainer($container);
 $app = AppFactory::create();
