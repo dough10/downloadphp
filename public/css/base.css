@@ -431,6 +431,11 @@ dialog>.button {
   left: calc(anchor(right) + 8px);
   font-size: 0.8em;
 }
+li>p {
+  text-align: center;
+  padding: 16px 0 0 0;
+  border-top: var(--file-border);
+}
   @keyframes hide-it {
   from {
     display: block;
