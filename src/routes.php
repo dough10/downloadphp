@@ -7,8 +7,6 @@ use Slim\Views\PhpRenderer;
 
 use App\Helpers;
 
-require_once __DIR__ . '/../src/Helpers/Utils.php';
-
 return function (App $app) {
   $settings = require __DIR__ . '/../config/settings.php';
   $container = $app->getContainer();
