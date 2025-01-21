@@ -81,7 +81,9 @@ return function (App $app) {
     return $renderer->render($response, 'downloads.phtml', $viewData);
   });
 
-  $app->get('*', function (Request $request, Response $response, $args) {
+  $app->any('/{routes:.+}', function (Request $request, Response $response) {
+    $body = json_encode(array('error'=> 'File not found'));
+    $response->getBody()->write($body);
     return $response->withStatus(404, 'File not found');
   });
 };
