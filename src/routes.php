@@ -88,7 +88,7 @@ return function (App $app) {
     }
   });
   
-  $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $settings, $logger) {
+  $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
       $logger->info(Helpers\getUserIP(). ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
       $database->downloadStatusChanged($args['ndx'], $args['status']);
