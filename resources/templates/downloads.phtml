@@ -18,7 +18,6 @@ function formatFileSize($bytes) {
   };
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="<?=  htmlspecialchars($settings['app']['language']) ?>">
 <head>
@@ -65,8 +64,17 @@ function formatFileSize($bytes) {
       </button> 
     </header>
     <main>
-      <ul>
-<?php 
+      <ul><?php 
+if (count($files) === 0) {
+  $extensions = implode(', ', $allowedExtensions)
+?> 
+        <li>
+          <p>
+            No <?= htmlspecialchars($extensions, ENT_QUOTES, $settings['app']['encoding']); ?> files in <?= htmlspecialchars($folder, ENT_QUOTES, $settings['app']['encoding']) . "\n"; ?>
+          </p>
+        </li>
+<?php
+}
 foreach ($files as $file) {
   $formattedSize = formatFileSize($file['size']);
 
