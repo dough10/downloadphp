@@ -64,7 +64,8 @@ function formatFileSize($bytes) {
       </button> 
     </header>
     <main>
-      <ul><?php 
+      <ul>
+<?php 
 if (count($files) === 0) {
   $extensions = implode(', ', $allowedExtensions)
 ?> 
