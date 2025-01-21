@@ -2,21 +2,8 @@
 
 $settings = require __DIR__ . "/../../config/settings.php";
 
-/**
- * makes bytes readable by humans
- * 
- * @param mixed $bytes
- * 
- * @return string
- */
-function formatFileSize($bytes) {
-  return match (true) {
-    $bytes >= 1073741824 => number_format($bytes / 1073741824, 2) . ' GB',
-    $bytes >= 1048576    => number_format($bytes / 1048576, 2) . ' MB',
-    $bytes >= 1024       => number_format($bytes / 1024, 2) . ' KB',
-    default              => $bytes . ' B'
-  };
-}
+use App\Helpers;
+
 ?>
 <!DOCTYPE html>
 <html lang="<?=  htmlspecialchars($settings['app']['language']) ?>">
