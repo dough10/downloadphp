@@ -7,6 +7,7 @@ return [
     "allowed-extensions" => [
       'json'
     ],
+    "log-location" => __DIR__ . "/../logs/downloadphp.log",
     "log-level" => Monolog\Logger::DEBUG
   ],
   "database" => [ 
