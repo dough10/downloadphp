@@ -10,7 +10,7 @@ class Db {
   private $appSettings;
 
   /**
-   * creates sqlite db file
+   * create db file
    * 
    * @return void
    */
@@ -29,7 +29,7 @@ class Db {
   }
 
   /**
-   * inserts a pending download into database
+   * insert a pending download
    * 
    * @param string $dbFilename
    * @param string $name
@@ -60,7 +60,7 @@ class Db {
   }
 
   /**
-   * get all downloads users from database
+   * get all downloads
    * 
    * @param string $dbFilename
    * 
@@ -79,7 +79,7 @@ class Db {
   }
 
   /**
-   * update the status of a download
+   * update the status
    * 
    * @param string $dbFilename
    * @param string $id
@@ -103,7 +103,7 @@ class Db {
 
 
   /**
-   * clears download history
+   * clear download history
    * 
    * @param string $db
    * 
@@ -134,7 +134,7 @@ class Db {
   }
 
   /**
-   * will mark a pending download with a completed status
+   * mark a download with a completed status
    * 
    * @param string $ndx
    * @param string $status
