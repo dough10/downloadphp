@@ -17,12 +17,14 @@ return function (App $app) {
     $file = $settings['app']['file-path'] . '/' . basename($args['file']);
 
     if (realpath($file) === false || strpos(realpath($file), realpath($settings['app']['file-path'])) !== 0) {
+      $logger->warning('Forbidden access: ' . $file);
       $body = json_encode(['error' => 'Forbidden access']);
       $response->getBody()->write($body);
       return $response->withStatus(403, 'Forbidden');
     }
 
     if (!file_exists($file)) {
+      $logger->warning('File not found: ' . $file);
       $body = json_encode(['error' => 'File not found']);
       $response->getBody()->write($body);
       return $response->withStatus(404, 'File Not Found');
@@ -42,6 +44,7 @@ return function (App $app) {
   
     $handle = fopen($file, 'rb');
     if (!$handle) {
+      $logger->error('Unable to open file: ' . $file);
       $body = json_encode(['error' => 'Unable to open file']);
       $response->getBody()->write($body);
       return $response->withStatus(500, 'Internal Server Error');
@@ -66,6 +69,7 @@ return function (App $app) {
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $file = $settings['app']['file-path'] . '/' . $args['file'];
     if (!file_exists($file)) {
+      $logger->warning('File not found: ' . $file);
       $body = json_encode(array('error'=> 'File not found'));
       $response->getBody()->write($body);
       return $response->withStatus(404, 'File not found');
