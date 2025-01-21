@@ -6,7 +6,8 @@ return [
     "file-path" => "/downloads",
     "allowed-extensions" => [
       'json'
-    ]
+    ],
+    "log-level" => Monolog\Logger::DEBUG
   ],
   "database" => [ 
     "dsn" => "sqlite:" . __DIR__ . "/../resources/data/dl.db"
