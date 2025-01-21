@@ -128,7 +128,7 @@ class Db {
    */
   private function validateAndSanitizeId($id) {
     if (!filter_var($id, FILTER_VALIDATE_INT)) {
-      throw new Exception('Invalid ID provided');
+      throw new Exception('Invalid ID provided. ID must be a valid intager');
     }
     return (int)$id; 
   }
