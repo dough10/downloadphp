@@ -436,7 +436,7 @@ li>p {
   padding: 16px 0 0 0;
   border-top: var(--file-border);
 }
-  @keyframes hide-it {
+@keyframes hide-it {
   from {
     display: block;
     opacity: 1
