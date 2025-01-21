@@ -72,7 +72,9 @@ return function (App $app) {
     $viewData = [
       'host' => $_SERVER['HTTP_HOST'],
       'username' => $_SESSION['username'],
-      'files' => Helpers\generateFileList($settings['app']['file-path'], Helpers\allowedExtensions),
+      'folder' => $settings['app']['file-path'],
+      'allowedExtensions' => $settings['app']['allowed-extensions'],
+      'files' => Helpers\generateFileList($settings['app']['file-path'], $settings['app']['allowed-extensions']),
       'downloadList' => $database->getDownloads()
     ];
     return $renderer->render($response, 'downloads.phtml', $viewData);
