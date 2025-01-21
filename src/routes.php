@@ -70,11 +70,18 @@ return function (App $app) {
       $response->getBody()->write($body);
       return $response->withStatus(404, 'File not found');
     }
-    $ndx = $database->insertDownloadEntry($file);
-    $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ' logged as Index: ' . $ndx);
-    $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads()];
-    $response->getBody()->write(json_encode($retData));
-    return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+    try {
+      $ndx = $database->insertDownloadEntry($file);
+      $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ' logged as Index: ' . $ndx);
+      $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads()];
+      $response->getBody()->write(json_encode($retData));
+      return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
+    } catch (Exception $e) {
+      $logger->error($e->getMessage());
+      $response->getBody()->write(json_encode(array('error'=> $e->getMessage())));
+      $response->withStatus(500, 'Internal Server Error')->withHeader('Content-Type', 'application/json');
+      return $response;
+    }
   });
   
   $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $settings, $logger) {
@@ -84,8 +91,9 @@ return function (App $app) {
       $response->getBody()->write(json_encode($database->getDownloads()));
       return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     } catch(Exception $e) {
+      $logger->error($e->getMessage());
       $response->getBody()->write(json_encode(array('error'=> $e->getMessage())));
-      $response->withStatus(400, 'Bad Request');
+      $response->withStatus(500, 'Internal Server Error')->withHeader('Content-Type', 'application/json');
       return $response;
     }
   });
@@ -97,6 +105,7 @@ return function (App $app) {
       $response->getBody()->write(json_encode($database->getDownloads()));
       return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     } catch(Exception $e) {
+      $logger->error($e->getMessage());
       $response->getBody()->write(json_encode(array('error'=> $e->getMessage())));
       return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
     }
