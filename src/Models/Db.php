@@ -88,7 +88,7 @@ class Db {
    * @return void
    */
   public function updateDownloadStatus($id, $status) {
-    $id = validateAndSanitizeId($id);
+    $id = $this->validateAndSanitizeId($id);
     $status = filter_var($status, FILTER_SANITIZE_STRING);
     try {
       $query = 'UPDATE downloads SET status = :status WHERE id = :id';
