@@ -71,7 +71,6 @@ function decodeAuthHeader($header): string {
   if (empty($username)) {
     return "Default";
   }
-  session_start();
   return $username;
 }
 
