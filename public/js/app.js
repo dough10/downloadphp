@@ -483,6 +483,7 @@ function toggleSoundFX() {
       });
       file.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' || event.key === 'Space') {
+          event.preventDefault();
           file.click();
         }
       });
