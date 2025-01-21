@@ -80,4 +80,8 @@ return function (App $app) {
     ];
     return $renderer->render($response, 'downloads.phtml', $viewData);
   });
+
+  $app->get('*', function (Request $request, Response $response, $args) {
+    return $response->withStatus(404, 'File not found');
+  });
 };
