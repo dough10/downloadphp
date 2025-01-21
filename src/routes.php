@@ -17,6 +17,8 @@ return function (App $app) {
   $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings) {
     $file = $settings['app']['file-path'] . '/' . $args['file'];
     if (!file_exists($file)) {
+      $body = json_encode(array('error'=> 'File not found'));
+      $response->getBody()->write($body);
       return $response->withStatus(404, 'File Not Found');
     }
     $mimeType = mime_content_type($file);
