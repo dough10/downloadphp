@@ -6,6 +6,6 @@ return [
     "file-path" => "/downloads"
   ],
   "database" => [ 
-    "dsn" => "sqlite: " . __DIR__ . "/../resources/data/dl.db"
+    "dsn" => "sqlite:" . __DIR__ . "/../resources/data/dl.db"
   ]
 ];
