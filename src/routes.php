@@ -25,7 +25,10 @@ return function (App $app) {
     if (!$mimeType) {
       $mimeType = 'application/octet-stream';
     }
-    $response = $response->withHeader('Content-Type', $mimeType);
+    $fileSize = filesize($file);
+    $response = $response
+        ->withHeader('Content-Type', $mimeType)
+        ->withHeader('Content-Length', $fileSize);
     $response->getBody()->write(file_get_contents($file));
     return $response;
   });
