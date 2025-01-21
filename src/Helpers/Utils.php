@@ -74,3 +74,34 @@ function decodeAuthHeader($header): string {
   session_start();
   return $username;
 }
+
+function getUserIP() {
+  $ip = '';
+  if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+    $ip = trim($ipArray[0]);
+  }
+  if (empty($ip) && !empty($_SERVER['HTTP_CLIENT_IP'])) {
+    $ip = $_SERVER['HTTP_CLIENT_IP'];
+  }
+  if (empty($ip)) {
+    $ip = $_SERVER['REMOTE_ADDR'];
+  }
+  return filter_var($ip, FILTER_VALIDATE_IP) ? $ip : 'Invalid IP';
+}
+
+/**
+ * makes bytes readable by humans
+ * 
+ * @param mixed $bytes
+ * 
+ * @return string
+ */
+function formatFileSize($bytes) {
+  return match (true) {
+    $bytes >= 1073741824 => number_format($bytes / 1073741824, 2) . ' GB',
+    $bytes >= 1048576    => number_format($bytes / 1048576, 2) . ' MB',
+    $bytes >= 1024       => number_format($bytes / 1024, 2) . ' KB',
+    default              => $bytes . ' B'
+  };
+}
