@@ -3,6 +3,7 @@ use Slim\App;
 use App\Models\Db;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\LineFormatter;
 
 return function (App $app) {
   $settings = require __DIR__ . '/../config/settings.php';
@@ -14,6 +15,12 @@ return function (App $app) {
     $logger = new Logger('downloadphp');
     $stream = new StreamHandler(__DIR__ . "/../logs/downloadphp.log", $settings['app']['log-level']);
     $logger->pushHandler($stream);
+    $logger->getHandlers()[0]->setFormatter(new LineFormatter(
+      "%datetime% %level_name%: %message% %context% %extra%\n",
+      null, 
+      true,
+      true  
+    ));
     return $logger;
   });
 };
