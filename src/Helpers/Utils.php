@@ -1,18 +1,6 @@
 <?php
 namespace App\Helpers;
 
-const allowedExtensions = [
-  // 'txt',
-  // 'pdf',
-  // 'jpg',
-  // 'png',
-  // 'zip',
-  // 'mp3',
-  // 'flac',
-  // 'log',
-  'json'
-];
-
 /**
  * creates a list of downloadable files
  * 
@@ -24,35 +12,39 @@ const allowedExtensions = [
 function generateFileList($dir, $allowedExtensions) {
   // walk folder structure for files
   $files = [];
-  if ($handle = opendir($dir)) {
+  if (!is_dir($dir)) {
+    return $files;
+  } else if ($handle = opendir($dir)) {
     while (false !== ($entry = readdir($handle))) {
-      if ($entry != "." && $entry != "..") {
-        // file is not a child of the directory containing this file
-        $filePath = realpath($dir . DIRECTORY_SEPARATOR . $entry);
-        if (strpos($filePath, $dir) !== 0) {
-          continue;
-        }
+      if ($entry === "." || $entry === "..") {
+        continue;
+      }
 
-        // file is not an allowed type
-        $fileExtension = pathinfo($entry, PATHINFO_EXTENSION);
-        if (!in_array($fileExtension, $allowedExtensions)) {
-          continue;
-        }
+      // file is not a child of the directory containing this file
+      $filePath = realpath($dir . DIRECTORY_SEPARATOR . $entry);
+      if (strpos($filePath, $dir) !== 0) {
+        continue;
+      }
 
-        // file is hidden
-        if (strpos($entry, '.') === 0) {
-          continue;
-        }
+      // file is not an allowed type
+      $fileExtension = pathinfo($entry, PATHINFO_EXTENSION);
+      if (!in_array($fileExtension, $allowedExtensions)) {
+        continue;
+      }
 
-        // build list of files in this directory, that are not hidden and of the correct file extension 
-        if (is_file($filePath)) {
-          $files[] = [
-            'name' => $entry,
-            'path' => basename($filePath),
-            'size' => filesize($filePath),
-            'modified' => filemtime($filePath) 
-          ];
-        }
+      // file is hidden
+      if (strpos($entry, '.') === 0) {
+        continue;
+      }
+
+      // build list of files in this directory, that are not hidden and of the correct file extension 
+      if (is_file($filePath)) {
+        $files[] = [
+          'name' => $entry,
+          'path' => basename($filePath),
+          'size' => filesize($filePath),
+          'modified' => filemtime($filePath) 
+        ];
       }
     }
     closedir($handle);
