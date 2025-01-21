@@ -89,7 +89,7 @@ class Db {
    */
   public function updateDownloadStatus($id, $status) {
     $id = $this->validateAndSanitizeId($id);
-    $status = filter_var($status, FILTER_SANITIZE_STRING);
+    $status = htmlspecialchars($status, ENT_QUOTES, $this->appSettings['app']['encoding']);
     try {
       $query = 'UPDATE downloads SET status = :status WHERE id = :id';
       $stmt = $this->pdo->prepare($query);
@@ -143,7 +143,7 @@ class Db {
    */
   public function downloadStatusChanged($ndx, $status) {
     $ndx = $this->validateAndSanitizeId($ndx);
-    $status = filter_var($status, FILTER_SANITIZE_STRING);
+    $status = htmlspecialchars($status, ENT_QUOTES, $this->appSettings['app']['encoding']);
     return match($status) {
       'true' => $this->updateDownloadStatus($ndx, 'complete'),
       'canceled' => $this->updateDownloadStatus($ndx, 'canceled'),
@@ -160,6 +160,6 @@ class Db {
    * @return string
    */
   private function trimPath($fullpath) {
-    return str_replace("/downloads/","", $fullpath);
+    return str_replace($this->appSettings['app']['file-path'] . '/',"", $fullpath);
   }
 }
