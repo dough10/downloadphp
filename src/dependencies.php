@@ -13,7 +13,7 @@ return function (App $app) {
 
   $container->set('logger', function () use ($settings): Logger {
     $logger = new Logger('downloadphp');
-    $stream = new StreamHandler($settings['app']['log-location'], $settings['app']['log-level']);
+    $stream = new StreamHandler($settings['log']['log-location'], $settings['log']['log-level']);
     $logger->pushHandler($stream);
     $logger->getHandlers()[0]->setFormatter(new LineFormatter(
       "%datetime% %level_name%: %message% %context% %extra%\n",
