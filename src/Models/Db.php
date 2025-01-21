@@ -87,7 +87,7 @@ class Db {
    * 
    * @return void
    */
-  public function updateDownloadStatus($id, $status) {
+  private function updateDownloadStatus($id, $status) {
     $id = $this->validateAndSanitizeId($id);
     $status = htmlspecialchars($status, ENT_QUOTES, $this->appSettings['app']['encoding']);
     try {
