@@ -4,15 +4,16 @@ use Slim\App;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\PhpRenderer;
-
 use App\Helpers;
+
 
 return function (App $app) {
   $settings = require __DIR__ . '/../config/settings.php';
   $container = $app->getContainer();
   $database = $container->get('database');
+  $logger = $container->get('logger');
 
-  $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings) {
+  $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
     $file = $settings['app']['file-path'] . '/' . basename($args['file']);
 
     if (realpath($file) === false || strpos(realpath($file), realpath($settings['app']['file-path'])) !== 0) {
@@ -45,6 +46,8 @@ return function (App $app) {
       $response->getBody()->write($body);
       return $response->withStatus(500, 'Internal Server Error');
     }
+
+    $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ' ' . Helpers\formatFileSize($fileSize) . ' ' . $mimeType);
   
     $chunkSize = 1024 * 1024;
     $throttleDelay = 0.1;
@@ -60,23 +63,23 @@ return function (App $app) {
     return $response;
   });
   
-  
-  $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database) {
+  $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $file = $settings['app']['file-path'] . '/' . $args['file'];
     if (!file_exists($file)) {
       $body = json_encode(array('error'=> 'File not found'));
       $response->getBody()->write($body);
       return $response->withStatus(404, 'File not found');
     }
-    // error_log("Download request: " . $args['file'] . " by user: " . '**stand in for username**' . "@" . $_SERVER['REMOTE_ADDR'] . " User-Agent: " . $_SERVER['HTTP_USER_AGENT']);
     $ndx = $database->insertDownloadEntry($file);
+    $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ' logged as Index: ' . $ndx);
     $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads()];
     $response->getBody()->write(json_encode($retData));
     return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
   });
   
-  $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database) {
+  $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $settings, $logger) {
     try {
+      $logger->info(Helpers\getUserIP(). ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
       $database->downloadStatusChanged($args['ndx'], $args['status']);
       $response->getBody()->write(json_encode($database->getDownloads()));
       return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
@@ -87,8 +90,9 @@ return function (App $app) {
     }
   });
   
-  $app->post('/reset', function (Request $request, Response $response, $args) use ($database) {
+  $app->post('/reset', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
+      $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
       $database->clearDownloads();
       $response->getBody()->write(json_encode($database->getDownloads()));
       return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
@@ -98,7 +102,7 @@ return function (App $app) {
     }
   });
   
-  $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database) {
+  $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $renderer = new PhpRenderer(__DIR__ . '/../resources/templates');
     $viewData = [
       'host' => $_SERVER['HTTP_HOST'],
@@ -107,10 +111,12 @@ return function (App $app) {
       'files' => Helpers\generateFileList($settings['app']['file-path'], $settings['app']['allowed-extensions']),
       'downloadList' => $database->getDownloads()
     ];
+    $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
     return $renderer->render($response, 'downloads.phtml', $viewData);
   });
 
-  $app->any('/{routes:.+}', function (Request $request, Response $response) {
+  $app->any('/{routes:.+}', function (Request $request, Response $response) use ($logger) {
+    $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') 404 ' . $request->getUri()->getPath());
     $body = json_encode(array('error'=> 'File not found'));
     $response->getBody()->write($body);
     return $response->withStatus(404, 'File not found');
