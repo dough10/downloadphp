@@ -13,23 +13,53 @@ return function (App $app) {
   $database = $container->get('database');
 
   $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings) {
-    $file = $settings['app']['file-path'] . '/' . $args['file'];
+    $file = $settings['app']['file-path'] . '/' . basename($args['file']);
+
+    if (realpath($file) === false || strpos(realpath($file), realpath($settings['app']['file-path'])) !== 0) {
+      $body = json_encode(['error' => 'Forbidden access']);
+      $response->getBody()->write($body);
+      return $response->withStatus(403, 'Forbidden');
+    }
+
     if (!file_exists($file)) {
-      $body = json_encode(array('error'=> 'File not found'));
+      $body = json_encode(['error' => 'File not found']);
       $response->getBody()->write($body);
       return $response->withStatus(404, 'File Not Found');
     }
+  
     $mimeType = mime_content_type($file);
     if (!$mimeType) {
       $mimeType = 'application/octet-stream';
     }
     $fileSize = filesize($file);
+  
     $response = $response
-        ->withHeader('Content-Type', $mimeType)
-        ->withHeader('Content-Length', $fileSize);
-    $response->getBody()->write(file_get_contents($file));
+      ->withHeader('Content-Type', $mimeType)
+      ->withHeader('Content-Length', $fileSize)
+      ->withHeader('Cache-Control', 'no-store')
+      ->withHeader('Content-Disposition', 'attachment; filename="' . basename($file) . '"');
+  
+    $handle = fopen($file, 'rb');
+    if (!$handle) {
+      $body = json_encode(['error' => 'Unable to open file']);
+      $response->getBody()->write($body);
+      return $response->withStatus(500, 'Internal Server Error');
+    }
+  
+    $chunkSize = 1024 * 1024;
+    $throttleDelay = 0.1;
+  
+    while (!feof($handle)) {
+      $chunk = fread($handle, $chunkSize);
+      $response->getBody()->write($chunk);
+      flush();
+      usleep($throttleDelay * 1000000);
+    }
+    fclose($handle);
+  
     return $response;
   });
+  
   
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database) {
     $file = $settings['app']['file-path'] . '/' . $args['file'];
