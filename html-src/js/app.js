@@ -371,6 +371,7 @@ async function getFile(res, ui, name, ndx, contentLength) {
     const timeElapsed = currentTime - lastTime;
     if (done) {
       ui.bar.style.transform = `translateX(-0%)`;
+      if (!speed) speed = formatBytes(totalBytes / (timeElapsed / 1000));
       ui.dlSpeed.textContent = `100% @ ${speed}/s`;
       console.log(`${name} -> ${ui.dlSpeed.textContent}`);
       new Toast('Download Complete.', 2);
