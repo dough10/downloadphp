@@ -42,27 +42,9 @@ return function (App $app) {
       ->withHeader('Cache-Control', 'no-store')
       ->withHeader('Content-Disposition', 'attachment; filename="' . basename($file) . '"');
   
-    $handle = fopen($file, 'rb');
-    if (!$handle) {
-      $logger->error('Unable to open file: ' . $file);
-      $body = json_encode(['error' => 'Unable to open file']);
-      $response->getBody()->write($body);
-      return $response->withStatus(500, 'Internal Server Error');
-    }
-
     $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ', ' . Helpers\formatFileSize($fileSize) . ', ' . $mimeType);
   
-    $chunkSize = 1024 * 1024;
-    $throttleDelay = 0.1;
-  
-    while (!feof($handle)) {
-      $chunk = fread($handle, $chunkSize);
-      $response->getBody()->write($chunk);
-      flush();
-      usleep($throttleDelay * 1000000);
-    }
-    fclose($handle);
-  
+    $response->getBody()->write(file_get_contents($file));
     return $response;
   });
   
