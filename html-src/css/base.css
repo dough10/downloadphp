@@ -561,4 +561,7 @@ li>p {
     max-width: 1200px;
     font-size: 1.2em;
   }
+  #hist_but {
+    top: 32px;
+  }
 }
