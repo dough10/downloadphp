@@ -105,7 +105,6 @@ class Db {
     }
   }
 
-
   /**
    * clear download history
    * 
