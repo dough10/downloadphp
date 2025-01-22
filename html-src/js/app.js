@@ -405,9 +405,10 @@ let lastPrint = Date.now()
  */
 function logProgress(name, rate) {
   const now = Date.now();
-  console.log(now, lastPrint)
+  console.log(now - lastPrint)
   if (now - lastPrint > 100) return;
   console.log(`${name} -> ${rate}`);
+  lastPrint = now;
 }
 
 /**
