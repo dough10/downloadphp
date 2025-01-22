@@ -153,7 +153,7 @@ class Db {
   }
 
   /**
-   * trip path from filename
+   * trim path from filename
    * 
    * @param string $fullpath
    * 
