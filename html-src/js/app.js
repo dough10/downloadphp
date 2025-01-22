@@ -374,7 +374,7 @@ async function getFile(res, ui, name, ndx, contentLength) {
       const downloadSpeed = loadedBytes / (timeElapsed / 1000);
       const speed = formatBytes(downloadSpeed);
       ui.dlSpeed.textContent = `100% @ ${speed}/s`;
-      console.log(`${name} -> ${ui.dlSpeed.textContent}`);
+      logProgress(name, ui.dlSpeed.textContent);
       await sleep(500);
       cleanupDownload(name, ndx, dls, ui.row);
       break;
@@ -384,7 +384,7 @@ async function getFile(res, ui, name, ndx, contentLength) {
     const progress = (loadedBytes / totalBytes) * 100;
     ui.bar.style.transform = `translateX(-${100 - progress}%)`;
     ui.dlSpeed.textContent = `${progress.toFixed(1)}% @ ${speed}/s`;
-    console.log(`${name} -> ${ui.dlSpeed.textContent}`);
+    logProgress(name, ui.dlSpeed.textContent);
     if (timeElapsed >= 1000) {
       const bytesDownloaded = loadedBytes - lastLoadedBytes;
       const downloadSpeed = bytesDownloaded / (timeElapsed / 1000);
@@ -394,6 +394,19 @@ async function getFile(res, ui, name, ndx, contentLength) {
     }
   }
   return chunks;
+}
+
+let lastPrint = Date.now()
+/**
+ * deboune console log
+ * 
+ * @param {String} name
+ * @param {String} rate
+ */
+function logProgress(name, rate) {
+  const now = Date.now()
+  if (now - lastPrint > 600) return;
+  console.log(`${name} -> ${rate}`);
 }
 
 /**
