@@ -386,13 +386,13 @@ async function getFile(res, ui, name, ndx, contentLength) {
     ui.bar.style.transform = `translateX(-${100 - progress}%)`;
     ui.dlSpeed.textContent = `${progress.toFixed(1)}% @ ${speed}/s`;
     logProgress(name, ui.dlSpeed.textContent);
-    lastTime = currentTime;
-    lastLoadedBytes = loadedBytes;
     if (timeElapsed >= 1000) {
       const bytesDownloaded = loadedBytes - lastLoadedBytes;
       const downloadSpeed = bytesDownloaded / (timeElapsed / 1000);
       speed = formatBytes(downloadSpeed);
     }
+    lastTime = currentTime;
+    lastLoadedBytes = loadedBytes;
   }
   return chunks;
 }
