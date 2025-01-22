@@ -35,6 +35,8 @@ rm -f templates/*.phtml
 html-minifier html-src/downloads.phtml --collapse-whitespace --decode-entities --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype  --output $template
 uglifycss html-src/css/base.css --output "public/$css_path"
 uglifyjs html-src/js/app.js --output "public/$js_path"
+cp html-src/js/*.php public/js
+
 
 replace_path ./css/base.css "./$css_path" $template
 replace_path ./js/app.js "./$js_path" $template
