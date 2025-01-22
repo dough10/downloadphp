@@ -362,7 +362,7 @@ async function getFile(res, ui, name, ndx, contentLength) {
   const totalBytes = parseInt(contentLength, 10);
   let speed = 0;
 
-  console.log(`total bytes: ${totalBytes}`)
+  console.log(`Content-Length: ${formatBytes(totalBytes)}`)
 
   while (true) {
     const { done, value } = await reader.read();
