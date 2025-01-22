@@ -563,6 +563,23 @@ function documentScroll() {
 }
 
 /**
+ * checks for avtive downloads before navigating away from page
+ * 
+ * @param {Event} event 
+ * 
+ * @returns {String}
+ */
+function checkActiveDownloads(event) {
+  if (!activedownloads.length) {
+    return;
+  }
+  activedownloads.forEach(dl => logCompleted(dl.name, dl.ndx, 'canceled'));
+  const message = 'Download(s) active. Are you sure you want to leave?';
+  event.returnValue = message; 
+  return message;
+}
+
+/**
  * app loaded callback
  */
 function appLoaded() {
@@ -571,18 +588,14 @@ function appLoaded() {
     console.log(soundLicense);
   }
 
-  // file listing clicked
   const files = document.querySelectorAll('.file');
   files.forEach(addFileInteractions);
 
-  // clear button clicked
   const clearButton = document.querySelector('#history>.clear');
   clearButton.addEventListener('click', _ => clearHistory(clearButton));
 
-  // history icon clicked
   document.querySelector('#hist_but').addEventListener('click', _ => document.querySelector('#history').showModal());
 
-  // arrow clicked
   const toTop = document.querySelector('.to-top');
   toTop.addEventListener('click', _ => document.documentElement.scrollTo({
     top: 0,
@@ -591,29 +604,12 @@ function appLoaded() {
   
   document.onscroll = documentScroll;
 
-  // clicked dialog close
-  document.querySelectorAll('dialog>.close').forEach(button => {
-    button.addEventListener('click', _ => {
-      const dialog = button.parentElement;
-      dialog.close();
-    });
-  });
-
-  // clickd outsde dialog
   const dialogs = document.querySelectorAll('dialog');
   dialogs.forEach(dialog => dialog.addEventListener('click', event => dialogClicked(event, dialog)));
+  
+  document.querySelectorAll('dialog>.close').forEach(button => button.addEventListener('click', _ => button.parentElement.close()));
 
-  // navigating away from site
-  window.addEventListener('beforeunload', event => {
-    if (!activedownloads.length) {
-      return;
-    }
-    // user has active downloads
-    activedownloads.forEach(dl => logCompleted(dl.name, dl.ndx, 'canceled'));
-    const message = 'Download(s) active. Are you sure you want to leave?';
-    event.returnValue = message; 
-    return message;
-  });    
+  window.addEventListener('beforeunload', checkActiveDownloads);    
 }
 
 window.onload = appLoaded;
