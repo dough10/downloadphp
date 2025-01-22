@@ -117,7 +117,7 @@ return function (App $app) {
   
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     try {
-      $renderer = new PhpRenderer(__DIR__ . '/../resources/templates');
+      $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
         'host' => $_SERVER['HTTP_HOST'],
         'username' => $_SESSION['username'],

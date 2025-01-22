@@ -21,7 +21,7 @@ version=$(generate_random_string 8)
 css_path=css/base.min.$version.css
 js_path=js/app.min.$version.js
 
-template=resources/templates/downloads.phtml
+template=templates/downloads.phtml
 
 rm public/css/*.css
 rm public/js/*.js
