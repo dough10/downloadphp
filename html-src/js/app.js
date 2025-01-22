@@ -369,12 +369,12 @@ async function getFile(res, ui, name, ndx, contentLength) {
     const currentTime = Date.now();
     const timeElapsed = currentTime - lastTime;
     if (done) {
-      new Toast('Download Complete.', 2);
       ui.bar.style.transform = `translateX(-0%)`;
       const downloadSpeed = loadedBytes / (timeElapsed / 1000);
       const speed = formatBytes(downloadSpeed);
       ui.dlSpeed.textContent = `100% @ ${speed}/s`;
       console.log(`${name} -> ${ui.dlSpeed.textContent}`);
+      new Toast('Download Complete.', 2);
       await sleep(500);
       cleanupDownload(name, ndx, dls, ui.row);
       break;
