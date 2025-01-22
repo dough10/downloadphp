@@ -384,7 +384,7 @@ async function getFile(res, ui, name, ndx, contentLength) {
     const progress = (loadedBytes / totalBytes) * 100;
     ui.bar.style.transform = `translateX(-${100 - progress}%)`;
     ui.dlSpeed.textContent = `${progress.toFixed(1)}% @ ${speed}/s`;
-    logProgress(name, ui.dlSpeed.textContent);
+    debounceLog(name, ui.dlSpeed.textContent);
     if (timeElapsed >= 1000) {
       const bytesDownloaded = loadedBytes - lastLoadedBytes;
       const downloadSpeed = bytesDownloaded / (timeElapsed / 1000);
@@ -403,7 +403,7 @@ let lastPrint = Date.now()
  * @param {String} name
  * @param {String} rate
  */
-function logProgress(name, rate) {
+function debounceLog(name, rate) {
   const now = Date.now();
   if ((now - lastPrint) < 600) return;
   console.log(`${name} -> ${rate}`);
