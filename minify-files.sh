@@ -13,7 +13,12 @@ replace_path() {
   search_escaped=$(printf '%s' "$search" | sed 's/[&/\]/\\&/g')
   replace_escaped=$(printf '%s' "$replace" | sed 's/[&/\]/\\&/g')
 
-  sed -i "s|$search_escaped|$replace_escaped|g" "$file"
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i "" "s|$search_escaped|$replace_escaped|g" "$file"
+  else
+    sed -i "s|$search_escaped|$replace_escaped|g" "$file"
+  fi
+
 }
 
 version=$(generate_random_string 8)
