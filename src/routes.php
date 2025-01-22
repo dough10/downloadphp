@@ -70,13 +70,13 @@ return function (App $app) {
     $file = $settings['app']['file-path'] . '/' . $args['file'];
     if (realpath($file) === false || strpos(realpath($file), realpath($settings['app']['file-path'])) !== 0) {
       $logger->warning('Forbidden access: ' . $file);
-      $body = json_encode(['error' => 'Forbidden access']);
+      $body = json_encode(['error' => 'Forbidden access', 'file' => $file]);
       $response->getBody()->write($body);
       return $response->withStatus(403, 'Forbidden');
     }
     if (!file_exists($file)) {
       $logger->warning('File not found: ' . $file);
-      $body = json_encode(array('error'=> 'File not found'));
+      $body = json_encode(array('error'=> 'File not found','file' => $file));
       $response->getBody()->write($body);
       return $response->withStatus(404, 'File not found');
     }
