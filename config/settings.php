@@ -5,6 +5,7 @@ return [
     "language" => "en-US",
     "file-path" => "/downloads",
     "allowed-extensions" => [
+      'mp3',
       'json'
     ]
   ],
