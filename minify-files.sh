@@ -35,7 +35,7 @@ rm -f templates/*.phtml
 
 critical html-src/downloads.phtml --base html-src -w 1280 -h 720 -ie > html-src/tmp/downloads.phtml
 uglifycss html-src/css/base.*.css --output "public/$css_path"
-rm html-src/css/base.*.css
+rm -f html-src/css/base.*.css
 uglifyjs html-src/js/app.js --output "public/$js_path"
 html-minifier html-src/tmp/downloads.phtml --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype  --output $template
 rm html-src/tmp/downloads.phtml
