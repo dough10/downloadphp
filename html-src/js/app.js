@@ -457,7 +457,115 @@ async function recordDownload(file) {
   return liList[0].dataset.ndx;
 }
 
-window.onload = () => {
+/**
+ * file element clicked
+ * 
+ * @param {HTMLElement} file clicked element
+ * 
+ * @returns {void}
+ */
+async function fileClicked(file) {
+  document.querySelector('#hist_but>svg').classList.add('spin');
+  const exists = await recordDownload(file.dataset.name);
+  if (!exists) {
+    return;
+  }
+  file.dataset.ndx = exists;
+  activedownloads.push({
+    name: file.dataset.name, 
+    ndx: file.dataset.ndx
+  });
+  await download({...file.dataset});
+  document.querySelector('#hist_but>svg').classList.remove('spin');
+}
+
+/**
+ * clear history ui
+ * 
+ * @param {HTMLElement} clearButton button clicked
+ * 
+ * @returns {void}
+ */
+async function clearHistory(clearButton) {
+  const none = document.querySelectorAll('#history>ul>li').length < 1;
+  if (none) {
+    new Toast('Nothing to clear.');
+    return;
+  }
+  clearButton.setAttribute('disabled', true);
+  const res = await fetch('reset', {method: 'POST'});
+  clearButton.removeAttribute('disabled');
+  if (!res.ok) {
+    new Toast('Error: resetting history');
+    return;
+  }
+  const data = await res.json();
+  new Toast('History cleared.');
+  const list = document.querySelector('#history>ul');
+  list.innerHTML = '';
+}
+
+/**
+ * add ui interactions to element
+ * 
+ * @param {HTMLElement} file 
+ */
+function addFileInteractions(file) {
+  file.addEventListener('click', _ => fileClicked(file));
+  file.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === 'Space') {
+      event.preventDefault();
+      file.click();
+    }
+  });
+}
+
+/**
+ * click when dialog open
+ * 
+ * @param {Event} event 
+ * @param {HTMLElement} dialog 
+ */
+function dialogClicked(event, dialog) {
+  const closeButton = dialog.querySelector('.small-button.close');
+  const animationend = _ => {
+    dialog.removeEventListener('animationend', animationend);
+    closeButton.classList.remove('attention');
+    dialog.classList.remove('dialog-attention');
+  };
+  var rect = dialog.getBoundingClientRect();
+  var isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+    rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+  if (!isInDialog) {
+    if (sound) document.querySelector('#error').play();
+    dialog.addEventListener('animationend', animationend);
+    closeButton.classList.add('attention');
+    dialog.classList.add('dialog-attention');
+  }
+}
+
+/**
+ * document scrolled callback
+ */
+let lastTop = 0;
+function documentScroll() {
+  const toTop = document.querySelector('.to-top');
+  const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+  if (scrollTop < lastTop) {
+    toTop.setAttribute('disabled', true);
+  } else if (scrollTop > 0) {
+    toTop.removeAttribute('disabled');
+  } else {
+    toTop.setAttribute('disabled', true);
+  }
+
+  lastTop = scrollTop;
+}
+
+/**
+ * app loaded callback
+ */
+function appLoaded() {
   if (sound && !licenseDisplayed) {
     licenseDisplayed = true;
     console.log(soundLicense);
@@ -465,54 +573,14 @@ window.onload = () => {
 
   // file listing clicked
   const files = document.querySelectorAll('.file');
-  files.forEach(file => {
-    file.addEventListener('click', async _ => {
-      document.querySelector('#hist_but>svg').classList.add('spin');
-      const exists = await recordDownload(file.dataset.name);
-      if (!exists) {
-        return;
-      }
-      file.dataset.ndx = exists;
-      activedownloads.push({
-        name: file.dataset.name, 
-        ndx: file.dataset.ndx
-      });
-      await download({...file.dataset});
-      document.querySelector('#hist_but>svg').classList.remove('spin');
-    });
-    file.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === 'Space') {
-        event.preventDefault();
-        file.click();
-      }
-    });
-  });
+  files.forEach(addFileInteractions);
 
   // clear button clicked
   const clearButton = document.querySelector('#history>.clear');
-  clearButton.addEventListener('click', async _ => {
-    const none = document.querySelectorAll('#history>ul>li').length < 1;
-    if (none) {
-      new Toast('Nothing to clear.');
-      return;
-    }
-    clearButton.setAttribute('disabled', true);
-    const res = await fetch('reset', {method: 'POST'});
-    clearButton.removeAttribute('disabled');
-    if (!res.ok) {
-      new Toast('Error: resetting history');
-      return;
-    }
-    const data = await res.json();
-    new Toast('History cleared.');
-    const list = document.querySelector('#history>ul');
-    list.innerHTML = '';
-  });
+  clearButton.addEventListener('click', _ => clearHistory(clearButton));
 
   // history icon clicked
-  document.querySelector('#hist_but').addEventListener('click', _ => {
-    document.querySelector('#history').showModal();
-  });
+  document.querySelector('#hist_but').addEventListener('click', _ => document.querySelector('#history').showModal());
 
   // arrow clicked
   const toTop = document.querySelector('.to-top');
@@ -520,21 +588,8 @@ window.onload = () => {
     top: 0,
     behavior: 'smooth'
   }));
-
-  // scroll main document
-  let lastTop = 0;
-  document.onscroll = () => {
-    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-    if (scrollTop < lastTop) {
-      toTop.setAttribute('disabled', true);
-    } else if (scrollTop > 0) {
-      toTop.removeAttribute('disabled');
-    } else {
-      toTop.setAttribute('disabled', true);
-    }
-
-    lastTop = scrollTop;
-  };
+  
+  document.onscroll = documentScroll;
 
   // clicked dialog close
   document.querySelectorAll('dialog>.close').forEach(button => {
@@ -546,25 +601,7 @@ window.onload = () => {
 
   // clickd outsde dialog
   const dialogs = document.querySelectorAll('dialog');
-  dialogs.forEach(dialog => {
-    dialog.addEventListener('click', event => {
-      const closeButton = dialog.querySelector('.small-button.close');
-      const aniend = _ => {
-        dialog.removeEventListener('animationend', aniend);
-        closeButton.classList.remove('attention');
-        dialog.classList.remove('dialog-attention');
-      };
-      var rect = dialog.getBoundingClientRect();
-      var isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
-        rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
-      if (!isInDialog) {
-        if (sound) document.querySelector('#error').play();
-        dialog.addEventListener('animationend', aniend);
-        closeButton.classList.add('attention');
-        dialog.classList.add('dialog-attention');
-      }
-    });
-  });
+  dialogs.forEach(dialog => dialog.addEventListener('click', event => dialogClicked(event, dialog)));
 
   // navigating away from site
   window.addEventListener('beforeunload', event => {
@@ -576,5 +613,7 @@ window.onload = () => {
     const message = 'Download(s) active. Are you sure you want to leave?';
     event.returnValue = message; 
     return message;
-  });      
-};
+  });    
+}
+
+window.onload = appLoaded;
