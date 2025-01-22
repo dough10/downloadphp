@@ -374,7 +374,7 @@ async function getFile(res, ui, name, ndx, contentLength) {
       const downloadSpeed = loadedBytes / (timeElapsed / 1000);
       const speed = formatBytes(downloadSpeed);
       ui.dlSpeed.textContent = `100% @ ${speed}/s`;
-      logProgress(name, ui.dlSpeed.textContent);
+      console.log(`${name} -> ${ui.dlSpeed.textContent}`);
       await sleep(500);
       cleanupDownload(name, ndx, dls, ui.row);
       break;
