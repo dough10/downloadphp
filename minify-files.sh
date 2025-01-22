@@ -23,12 +23,12 @@ js_path=js/app.min.$version.js
 
 template=templates/downloads.phtml
 
-rm public/css/*.css
-rm public/js/*.js
+rm -f public/css/*.css
+rm -f public/js/*.js
 
-html-minifier html-src/downloads.phtml --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype  --output $template
 uglifycss html-src/css/base.css --output "public/$css_path"
 uglifyjs html-src/js/app.js --output "public/$js_path"
+html-minifier html-src/downloads.phtml --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype  --output $template
 
 replace_path ./css/base.css "./$css_path" $template
 replace_path ./js/app.js "./$js_path" $template
