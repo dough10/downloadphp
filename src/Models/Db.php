@@ -72,7 +72,11 @@ class Db {
       $stmt = $this->pdo->prepare($query);
       $stmt->execute();
       $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-      return array_map([$this, 'trimPath'], $result);
+      return array_map(function ($download) {
+        $path = explode('/', $download['name']);
+        $download['name'] = end($path);
+        return $download;
+      }, $result);
     } catch (PDOException $e) {
       throw new Exception("error geting download list: ". $e->getMessage());
     }
@@ -150,16 +154,5 @@ class Db {
       'failed' => $this->updateDownloadStatus($ndx, 'failed'),
       default => throw new Exception('Invalid completed status.'),
     };
-  }
-
-  /**
-   * trim path from filename
-   * 
-   * @param string $fullpath
-   * 
-   * @return string
-   */
-  private function trimPath($fullpath) {
-    return str_replace($this->appSettings['app']['file-path'] . '/',"", $fullpath);
   }
 }
