@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "composer install",
-    "postinstall": "sudo npm install -g uglifycss html-minifier uglify-js -y",
+    "postinstall": "sudo npm install -g uglifycss html-minifier uglify-js critical -y",
     "build": "bash minify-files.sh",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
