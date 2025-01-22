@@ -390,9 +390,9 @@ async function getFile(res, ui, name, ndx, contentLength) {
       const bytesDownloaded = loadedBytes - lastLoadedBytes;
       const downloadSpeed = bytesDownloaded / (timeElapsed / 1000);
       speed = formatBytes(downloadSpeed);
+      lastTime = currentTime;
+      lastLoadedBytes = loadedBytes;
     }
-    lastTime = currentTime;
-    lastLoadedBytes = loadedBytes;
   }
   return chunks;
 }
