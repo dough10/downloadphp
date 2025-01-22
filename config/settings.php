@@ -3,7 +3,7 @@ return [
   "app" => [
     "encoding" => "utf-8",
     "language" => "en-US",
-    "file-path" => "/Users/dough10/Downloads",
+    "file-path" => "/downloads",
     "allowed-extensions" => [
       'json'
     ]
