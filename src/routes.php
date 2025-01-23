@@ -44,7 +44,7 @@ return function (App $app) {
   
     $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ', ' . Helpers\formatFileSize($fileSize) . ', ' . $mimeType);
   
-    readfile($file);
+    $response->getBody()->write(readfile($file));
     return $response;
   });
   
