@@ -53,8 +53,18 @@ use App\Helpers;
     <main>
       <ul>
 <?php 
-if (count($files) === 0) {
-  $extensions = implode(', ', $allowedExtensions);
+if (!is_array($files)) {
+?>
+        <li>
+          <p>
+            Check "file-path" in config/setting.php
+          </p>
+        </li>
+<?php
+}
+if (is_array($files)) {
+  if (count($files) === 0) {
+    $extensions = implode(', ', $allowedExtensions);
 ?> 
         <li>
           <p>
@@ -62,13 +72,13 @@ if (count($files) === 0) {
           </p>
         </li>
 <?php
-}
-foreach ($files as $file) {
-  $formattedSize = Helpers\formatFileSize($file['size']);
+  }
+  foreach ($files as $file) {
+    $formattedSize = Helpers\formatFileSize($file['size']);
 
-  $escaped_name = htmlspecialchars($file['name'], ENT_QUOTES, $settings['app']['encoding']);
-  $escaped_size = htmlspecialchars($formattedSize, ENT_QUOTES, $settings['app']['encoding']);
-  $escaped_path = 'files/' . htmlspecialchars($file['path'], ENT_QUOTES, $settings['app']['encoding']);
+    $escaped_name = htmlspecialchars($file['name'], ENT_QUOTES, $settings['app']['encoding']);
+    $escaped_size = htmlspecialchars($formattedSize, ENT_QUOTES, $settings['app']['encoding']);
+    $escaped_path = 'files/' . htmlspecialchars($file['path'], ENT_QUOTES, $settings['app']['encoding']);
 ?>
         <li 
           class='file'
@@ -81,6 +91,7 @@ foreach ($files as $file) {
           <span>Size: <?= $escaped_size; ?></span>
         </li>
 <?php
+  }
 }
 ?>
       </ul>
