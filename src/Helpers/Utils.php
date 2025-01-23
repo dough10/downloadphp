@@ -14,7 +14,8 @@ function generateFileList($dir, $allowedExtensions) {
   $files = [];
   if (!is_dir($dir)) {
     return $files;
-  } else if ($handle = opendir($dir)) {
+  }
+  if ($handle = opendir($dir)) {
     while (false !== ($entry = readdir($handle))) {
       if ($entry === "." || $entry === "..") {
         continue;
