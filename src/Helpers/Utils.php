@@ -7,13 +7,13 @@ namespace App\Helpers;
  * @param string $dir
  * @param array $allowedExtensions
  * 
- * @return array
+ * @return array|bool
  */
 function generateFileList($dir, $allowedExtensions) {
   // walk folder structure for files
   $files = [];
   if (!is_dir($dir)) {
-    return $files;
+    return false;
   }
   if ($handle = opendir($dir)) {
     while (false !== ($entry = readdir($handle))) {
