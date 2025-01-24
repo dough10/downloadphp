@@ -46,7 +46,7 @@ return function (App $app) {
     $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ', ' . Helpers\formatFileSize($fileSize) . ', ' . $mimeType);
   
     header('Content-Type: ' . $mimeType);
-    header('Content-Length'. $fileSize);
+    header('Content-Length: '. $fileSize);
     header('Cache-Control: no-store');
     header('Content-Disposition: attachment; filename="' . basename($file) . '"');
     readfile($file);
