@@ -36,17 +36,23 @@ return function (App $app) {
     }
     $fileSize = filesize($file);
   
-    $response = $response
-      ->withHeader('Content-Type', $mimeType)
-      ->withHeader('Content-Length', $fileSize)
-      ->withHeader('Cache-Control', 'no-store')
-      ->withHeader('Content-Disposition', 'attachment; filename="' . basename($file) . '"');
+
+    // $response = $response
+    //   ->withHeader('Content-Type', $mimeType)
+    //   ->withHeader('Content-Length', $fileSize)
+    //   ->withHeader('Cache-Control', 'no-store')
+    //   ->withHeader('Content-Disposition', 'attachment; filename="' . basename($file) . '"');
   
     $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath() . ', ' . Helpers\formatFileSize($fileSize) . ', ' . $mimeType);
   
-    $response->getBody()->write(file_get_contents($file)); 
+    header('Content-Type: ' . $mimeType);
+    header('Content-Length'. $fileSize);
+    header('Cache-Control: no-store');
+    header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+    readfile($file);
+    // $response->getBody()->write(file_get_contents($file)); 
 
-    return $response;
+    // return $response;
   });
   
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
