@@ -36,7 +36,6 @@ return function (App $app) {
     }
     $fileSize = filesize($file);
   
-
     $response = $response
       ->withHeader('Content-Type', $mimeType)
       ->withHeader('Content-Length', $fileSize)
