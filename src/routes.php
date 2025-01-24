@@ -47,8 +47,8 @@ return function (App $app) {
   
     header('Content-Type: ' . $mimeType);
     header('Content-Length: '. $fileSize);
-    header('Cache-Control: no-store');
-    header('Content-Disposition: attachment; filename="' . basename($file) . '"');
+    // header('Cache-Control: no-store');
+    // header('Content-Disposition: attachment; filename="' . basename($file) . '"');
     readfile($file);
     // $response->getBody()->write(file_get_contents($file)); 
 
