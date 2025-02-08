@@ -1,21 +1,3 @@
-const lsState = Number(localStorage.getItem('sound'));
-
-let licenseDisplayed = false;
-
-const soundLicense = '<--\nacess denied buzz by Jacco18\nhttps://freesound.org/s/419023/\nLicense: Creative Commons 0\n-->';
-
-let sound = Boolean(lsState);
-
-function toggleSoundFX() {
-  sound = !sound;
-  if (sound && !licenseDisplayed) {
-    licenseDisplayed = true;
-    console.log(soundLicense);
-  }
-  localStorage.setItem('sound', Number(sound));
-  return `SoundFX: ${sound ? 'On':'Off'}`;
-}
-
 /**
  * List of files actively being downloaded
  */
@@ -601,11 +583,6 @@ function checkActiveDownloads(event) {
  * app loaded callback
  */
 function appLoaded() {
-  if (sound && !licenseDisplayed) {
-    licenseDisplayed = true;
-    console.log(soundLicense);
-  }
-
   const files = document.querySelectorAll('.file');
   files.forEach(addFileInteractions);
 
