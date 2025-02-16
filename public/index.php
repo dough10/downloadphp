@@ -4,7 +4,6 @@ use Slim\Factory\AppFactory;
 
 require_once '../src/Helpers/Utils.php';
 require __DIR__ . '/../vendor/autoload.php';
-$settings = require __DIR__ . '/../config/settings.php';
 
 session_cache_limiter('private_no_expire:');
 session_start();
