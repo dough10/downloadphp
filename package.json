@@ -6,7 +6,8 @@
   "scripts": {
     "preinstall": "composer install",
     "postinstall": "sudo npm install -g uglifycss html-minifier uglify-js -y && bash minify-files.sh",
-    "build": "bash minify-files.sh"
+    "build": "bash minify-files.sh",
+    "host": "cd public && php -S localhost:8080"
   },
   "keywords": [],
   "author": "",
