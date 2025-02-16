@@ -6,12 +6,12 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
 
 return function (App $app) {
-  $settings = require __DIR__ . '/../config/settings.php';
   $container = $app->getContainer();
-
+  
   $container->set('database', new Db());
-
-  $container->set('logger', function () use ($settings): Logger {
+  
+  $container->set('logger', function (): Logger {
+    $settings = require __DIR__ . '/../config/settings.php';
     $logger = new Logger('downloadphp');
     $stream = new StreamHandler($settings['log']['log-location'], $settings['log']['log-level']);
     $logger->pushHandler($stream);
