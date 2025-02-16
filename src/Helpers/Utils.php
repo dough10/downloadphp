@@ -58,7 +58,7 @@ function generateFileList($dir, $allowedExtensions) {
 /**
  * parse basic auth header for username
  * 
- * @return void
+ * @return string
  */
 function decodeAuthHeader($header): string {
   if (preg_match('/^Basic\s(.+)$/i', $header, $matches)) {
@@ -72,7 +72,12 @@ function decodeAuthHeader($header): string {
   return $username;
 }
 
-function getUserIP() {
+/**
+ * Get users IP address
+ * 
+ * @return string
+ */
+function getUserIP(): string {
   $ip = '';
   if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
     $ipArray = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
@@ -101,4 +106,4 @@ function formatFileSize($bytes) {
     $bytes >= 1024       => number_format($bytes / 1024, 2) . ' KB',
     default              => $bytes . ' B'
   };
-}
+} 
