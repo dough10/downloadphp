@@ -8,6 +8,12 @@ return function (App $app) {
   $container = $app->getContainer();
   $logger = $container->get('logger');
   
+  $app->add(function (Request $request, RequestHandler $handler) {
+    $header = $request->getHeaderLine('Authorization');
+    $_SESSION['username'] = Helpers\decodeAuthHeader($header);
+    return $handler->handle($request);
+  });
+
   $app->add(function (Request $request, RequestHandler $next) use ($logger) {
     $settings = require __DIR__ . '/../config/settings.php';
     if (!isset($_SESSION['request_count'])) {
@@ -26,11 +32,5 @@ return function (App $app) {
     }
     $_SESSION['request_count']++;
     return $next->handle($request);
-  });
-
-  $app->add(function (Request $request, RequestHandler $handler) {
-    $header = $request->getHeaderLine('Authorization');
-    $_SESSION['username'] = Helpers\decodeAuthHeader($header);
-    return $handler->handle($request);
   });
 };
