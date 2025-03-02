@@ -41,16 +41,47 @@ const _toastCache = [];
  */
 class Toast {
   constructor(message, _timeout, link, linkText) {
-    // push toast to cache if currently displaying a toast
-    if (document.querySelector('#toast')) {
-      _toastCache.push([
-        message,
-        _timeout,
-        link,
-        linkText
-      ]);
+    if (this._isToastDisplayed()) {
+      this._cacheToast(message, _timeout, link, linkText);
       return;
     }
+    this._initializeToast(message, _timeout, link, linkText);
+  }
+
+  /**
+   * checks if toast is already displayed
+   * 
+   * @returns {Boolean} true if toast is displayed
+   * 
+   * @private
+   */
+  _isToastDisplayed() {
+    return Boolean(document.querySelector('#toast'));
+  }
+
+  /**
+   * caches toast message
+   * 
+   * @param {String} message - text to be displayed in the toast
+   * @param {Number} _timeout - in seconds  || defualt 3.5 seconds  ** optional
+   * @param {String} link - url to go to when toast is clicked
+   * @param {String} linkText - yellow text
+   * 
+   * @private
+   */ 
+  _cacheToast(message, _timeout, link, linkText) {
+    _toastCache.push([message, _timeout, link, linkText]);
+  }
+
+  /**
+   * Creates and displays a toast message
+   * 
+   * @param {String} message - text to be displayed in the toast
+   * @param {Number} _timeout - in seconds  || defualt 3.5 seconds  ** optional
+   * @param {String} link - url to go to when toast is clicked
+   * @param {String} linkText - yellow text
+   */
+  _initializeToast(message, _timeout, link, linkText) {
     // bind this to internal functions
     this._transitionEnd = this._transitionEnd.bind(this);
     this._cleanUp = this._cleanUp.bind(this);
@@ -204,7 +235,7 @@ function createLogEntry(dl) {
  * @returns {String}
  */
 function formatBytes(bytes) {
-  if (bytes === NaN) return 'Error';
+  if (isNaN(bytes)) return 'Error';
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   if (bytes === 0) return '0 B';
   const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
@@ -380,7 +411,7 @@ async function getFile(res, ui, name, ndx, contentLength) {
 
 let lastPrint = Date.now()
 /**
- * deboune console log
+ * debounce console log
  * 
  * @param {String} name
  * @param {String} rate
