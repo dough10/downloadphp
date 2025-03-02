@@ -557,7 +557,14 @@ li>p {
   }
 }
 @media (min-width: 1921px) {
+  .toast {
+    font-size: 16px;
+  }
   .card {
+    max-width: 1200px;
+    font-size: 1.2em;
+  }
+  dialog {
     max-width: 1200px;
     font-size: 1.2em;
   }
