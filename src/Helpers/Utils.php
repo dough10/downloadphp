@@ -15,16 +15,17 @@ function generateFileList($dir, $allowedExtensions) {
   // walk folder structure for files
   $files = [];
   if (!is_dir($dir)) {
+    error_log("Directory does not exist: $dir");
     return false;
   }
   if ($handle = opendir($dir)) {
     while (false !== ($entry = readdir($handle))) {
-      if ($entry === "." || $entry === "..") {
+      $filePath = realpath($dir . DIRECTORY_SEPARATOR . $entry);
+      if ($entry === "." || $entry === ".." || strpos($entry, '.') === 0 || !is_file($filePath)) {
         continue;
       }
 
-      $filePath = realpath($dir . DIRECTORY_SEPARATOR . $entry);
-      if (strpos($filePath, $dir) !== 0) {
+      if (realpath($filePath) === false || strpos(realpath($filePath), realpath($dir)) !== 0) {
         continue;
       }
 
@@ -33,13 +34,6 @@ function generateFileList($dir, $allowedExtensions) {
         continue;
       }
 
-      if (strpos($entry, '.') === 0) {
-        continue;
-      }
-
-      if (!is_file($filePath)) {
-        continue;
-      }
       $files[] = [
         'name' => $entry,
         'path' => basename($filePath),
@@ -53,6 +47,9 @@ function generateFileList($dir, $allowedExtensions) {
     usort($files, function($a, $b) {
       return $b['modified'] - $a['modified'];
     });
+  } else {
+    error_log("Failed to open directory: $dir");
+    return false;
   }
   return $files;
 }
