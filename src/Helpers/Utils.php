@@ -1,6 +1,8 @@
 <?php
 namespace App\Helpers;
 
+use Psr\Http\Message\ResponseInterface as Response;
+
 /**
  * creates a list of downloadable files
  * 
@@ -106,4 +108,9 @@ function formatFileSize($bytes) {
     $bytes >= 1024       => number_format($bytes / 1024, 2) . ' KB',
     default              => $bytes . ' B'
   };
-} 
+}
+
+function jsonResponse(Response $response, $data, $status = 200) {
+  $response->getBody()->write(json_encode($data));
+  return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
+}
