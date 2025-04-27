@@ -5,11 +5,22 @@
   "main": "index.js",
   "scripts": {
     "preinstall": "composer install",
-    "postinstall": "sudo npm install -g uglifycss html-minifier uglify-js -y && bash minify-files.sh",
-    "build": "bash minify-files.sh",
+    "postinstall": "npm run build",
+    "prebuild": "rm -f public/*.css && rm -f public/*.js && rm -f templates/*.phtml && rm -f public/session.php",
+    "build": "npx webpack --mode production",
+    "postbuild": "bash post.sh",
     "host": "cd public && php -S localhost:8080"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "clean-webpack-plugin": "^4.0.0",
+    "css-loader": "^7.1.2",
+    "css-minimizer-webpack-plugin": "^7.0.2",
+    "mini-css-extract-plugin": "^2.9.2",
+    "terser-webpack-plugin": "^5.3.14",
+    "webpack": "^5.99.6",
+    "webpack-cli": "^6.0.1"
+  }
 }
