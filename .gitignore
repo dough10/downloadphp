@@ -3,3 +3,4 @@
 /.DS*
 *.db
 *.ini
+/node_modules
