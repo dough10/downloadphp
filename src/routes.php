@@ -17,7 +17,8 @@ return function (App $app) {
     $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     $file = $userPath . '/' . basename($args['file']);
 
-    if (realpath($file) === false || strpos(realpath($file), realpath($userPath)) !== 0) {
+    $realPath = realpath($file);
+    if ($realPath === false || strpos($realPath, realpath($userPath)) !== 0) {
       $logger->warning('Forbidden access: ' . $file);
       return Helpers\jsonResponse($response, ['error' => 'Forbidden access'], 403);
     }
