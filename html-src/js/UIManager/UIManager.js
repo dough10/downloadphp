@@ -117,9 +117,9 @@ export default class UIManager {
    * @param {HTMLElement} row the current download
   */
   async cleanupDownload(ndx) {
+    await sleep(1000);
     const download = document.querySelector(`#ndx${ndx}`);
     download.remove();
-    await sleep(1000);
     const dls = document.querySelector(selectors.activeDownloadList);
     const removingLast = dls.querySelectorAll('.row').length <= 0;
     if (removingLast) {
