@@ -9,11 +9,6 @@ const em = new EventManager();
 const downloadManager = new DownloadManager();
 const uiManager = new UIManager();
 
-
-const eventNamespaces = {
-  DOWNLOAD: 'download'
-};
-
 /**
  * makes a pending file as complete in download logs
  * 
