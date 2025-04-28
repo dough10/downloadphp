@@ -53,13 +53,20 @@ export default class Download extends EventTarget {
    * 
    * @param {Response} response - The fetch response object.
    * @param {number} contentLength - The total size of the file in bytes.
+   * @param {Object} abortControler
+   * @param {Number} ndx  
    */
-  constructor(response, contentLength, abortControler) {
+  constructor(response, contentLength, abortControler, ndx) {
     super();
     this._reader = response.body.getReader();
     this._length = contentLength;
     this._totalBytes = parseInt(contentLength, 10);
     this._abortControler = abortControler;
+    this.ndx = ndx;
+  }
+
+  get downloading() {
+    return this._downloading;
   }
 
   /**
@@ -71,10 +78,16 @@ export default class Download extends EventTarget {
 
     while (this._downloading) {
       const { done, value } = await this._reader.read();
+
+      // Check if the download was stopped
+      if (!this._downloading) {
+        break;
+      }
+
       const currentTime = Date.now();
 
-      this._loadedBytes += value?.length;
-      value ? this._chunks.push(value) : null;
+      this._loadedBytes += value?.length || 0;
+      if (value) this._chunks.push(value);
       this._progress = calculatePercent(this._loadedBytes, this._totalBytes);
 
       if (currentTime - this._lastSpeedUpdateTime >= 1000) {
@@ -95,20 +108,19 @@ export default class Download extends EventTarget {
         break;
       }
     }
-
   }
 
   /**
    * Stops the download and cleans up resources.
    */
   stop() {
-    this._abortControler?.abort();
     this._downloading = false;
     this._reader.cancel();
     this._chunks = [];
     this._speed = 0;
     this._progress = 0;
     const stopped = new CustomEvent('stopped');
+    this._abortControler.abort();
     this.dispatchEvent(stopped);
   }
 
