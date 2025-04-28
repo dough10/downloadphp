@@ -2,6 +2,7 @@ import Toast from "../Toast/Toast.js";
 import selectors from "../utils/selectors.js";
 import {initiateDialogs, destroy} from '../dialog/dialog.js';
 import EventManager from "../utils/EventManager/EventManager.js";
+import sleep from "../utils/sleep.js";
 
 const em = new EventManager();
 
@@ -115,9 +116,10 @@ export default class UIManager {
    * 
    * @param {HTMLElement} row the current download
   */
-  cleanupDownload(ndx) {
+  async cleanupDownload(ndx) {
     const download = document.querySelector(`#ndx${ndx}`);
     download.remove();
+    await sleep(1000);
     const dls = document.querySelector(selectors.activeDownloadList);
     const removingLast = dls.querySelectorAll('.row').length <= 0;
     if (removingLast) {
