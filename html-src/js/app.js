@@ -150,8 +150,6 @@ async function fileClicked(file) {
     await download({ ...file.dataset });
   } catch (error) {
     console.error(`Error handling file click for ${file.dataset.name}:`, error);
-  } finally {
-    document.querySelector(selectors.historySVG).classList.remove('spin');
   }
 }
 
