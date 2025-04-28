@@ -14,7 +14,8 @@ return function (App $app) {
   $logger = $container->get('logger');
 
   $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
-    $file = $settings['app']['file-path'] . '/' . basename($args['file']);
+    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
+    $file = $userPath . '/' . basename($args['file']);
 
     if (realpath($file) === false || strpos(realpath($file), realpath($settings['app']['file-path'])) !== 0) {
       $logger->warning('Forbidden access: ' . $file);
@@ -83,13 +84,14 @@ return function (App $app) {
   });
 
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
+    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
         'host' => $_SERVER['HTTP_HOST'],
         'username' => $_SESSION['username'],
         'allowedExtensions' => $settings['app']['allowed-extensions'],
-        'files' => Helpers\generateFileList($settings['app']['file-path'], $settings['app']['allowed-extensions']),
+        'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
         'downloadList' => $database->getDownloads()
       ];
       return $renderer->render($response, 'downloads.phtml', $viewData)->withStatus(200);
