@@ -63,9 +63,9 @@ async function downloadFinished(update, name, ndx) {
     await logCompleted(name, ndx, true);
   } catch (error) {
     console.error(`Error finishing download for ${name}:`, error);
-    em.removeByNamespace(ndx); // Ensure cleanup even on error
+    em.removeByNamespace(ndx);
     uiManager.downloadEnded(ndx, 'Download failed.');
-    await logCompleted(name, ndx, false);
+    await logCompleted(name, ndx, 'failed');
   }
 }
 
