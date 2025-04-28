@@ -12,9 +12,9 @@ return function (App $app) {
   $container = $app->getContainer();
   $database = $container->get('database');
   $logger = $container->get('logger');
-  $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
 
-  $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($userPath, $logger) {
+  $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
+    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     $file = $userPath . '/' . basename($args['file']);
 
     if (realpath($file) === false || strpos(realpath($file), realpath($userPath)) !== 0) {
@@ -42,7 +42,8 @@ return function (App $app) {
     return $response->withStatus(200);
   });
 
-  $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($userPath, $database, $logger) {
+  $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
+    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     $file = $userPath . '/' . basename($args['file']);
     if (realpath($file) === false || strpos(realpath($file), realpath($userPath)) !== 0) {
       $logger->warning('Forbidden access: ' . $file);
@@ -83,7 +84,8 @@ return function (App $app) {
     }
   });
 
-  $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger, $userPath) {
+  $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
+    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
