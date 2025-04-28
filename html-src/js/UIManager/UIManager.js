@@ -1,6 +1,10 @@
 import Toast from "../Toast/Toast.js";
 import selectors from "../utils/selectors.js";
 
+import EventManager from "../utils/EventManager/EventManager.js";
+
+const em = new EventManager();
+
 export default class UIManager {
   /**
    * creates html entry for download log
@@ -69,17 +73,14 @@ export default class UIManager {
     const row = document.createElement('div');
     row.classList.add('row');
     row.append(dlWrapper, cancelButton);
+    row.id = `ndx${ndx}`;
 
     const dls = document.querySelector('#dls');
     dls.append(row);
     dls.setAttribute('open', true);
 
-    cancelButton.addEventListener('click', _ => {
-      stop();
-      document.querySelector('#hist_but>svg').classList.remove('spin');
-      bar.style.transform = `translateX(-100%)`;
-    });
-    return {row, dlSpeed, bar};
+    cancelButton.addEventListener('click', stop);
+    return {dlSpeed, bar};
   } 
 
   /**
@@ -97,25 +98,32 @@ export default class UIManager {
     });
   }
 
-  downloadEnded(row, str) {
+  /**
+   * a download has ended (failed, canceled)
+   * 
+   * @param {HTMLElement} row 
+   * @param {String} str 
+   */
+  downloadEnded(ndx, str) {
     new Toast(str, 2);
     this.setButtonDisabledState(selectors.clearHistoryButton, false);
-    this.cleanupDownload(row);
+    this.cleanupDownload(ndx);
   }
-
+  
   /**
    * cleans up finished download
    * 
    * @param {HTMLElement} row the current download
-   */
-  cleanupDownload(row) {
+  */
+  cleanupDownload(ndx) {
+    const download = document.querySelector(`#ndx${ndx}`);
+    download.remove();
     const dls = document.querySelector(selectors.activeDownloadList);
-    if ((dls.querySelectorAll('.row').length) <= 1) {
+    const removingLast = dls.querySelectorAll('.row').length <= 0;
+    if (removingLast) {
+      document.querySelector(selectors.historySVG).classList.remove('spin');
       dls.removeAttribute('open');
     }
-    row.remove();
-    // const ndxToRemove = activedownloads.findIndex(item => item.name === name && item.ndx === ndx);
-    // if (ndx !== -1) activedownloads.splice(ndxToRemove, 1);
   }
 
   /**
@@ -128,8 +136,37 @@ export default class UIManager {
     closeToTop ? toTop.setAttribute('disabled', true) : toTop.removeAttribute('disabled');
   }
 
+  /**
+   * toggles button disabled state based on function input
+   * 
+   * @param {String} buttonSelector 
+   * @param {Boolean} state 
+   */
   setButtonDisabledState(buttonSelector, state) {
     const button = document.querySelector(buttonSelector);
     state ? button.setAttribute('disabled', true) : button.removeAttribute('disabled');
+  }
+
+  /**
+   * makes file list interactive
+   */
+  init(fileClicked) {
+    const files = document.querySelectorAll(selectors.file);
+    files.forEach(file => {
+      em.add(file, 'click', _ => fileClicked(file))
+      em.add(file, 'keydown', (event) => {
+        if (event.key === 'Enter' || event.key === 'Space') {
+          event.preventDefault();
+          file.click();
+        }
+      });
+    });
+    const toTop = document.querySelector(selectors.toTop);
+    em.add(toTop, 'click', _ => document.documentElement.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    }));
+    
+    em.add(document, 'scroll', this.documentScrolled);
   }
 }
