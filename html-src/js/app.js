@@ -140,12 +140,12 @@ async function initateDownload(file) {
  * @returns {void}
  */
 async function fileClicked(file) {
-  const exists = await initateDownload(file.dataset.name);
-  if (!exists) {
+  const ndx = await initateDownload(file.dataset.name);
+  if (!ndx) {
     document.querySelector(selectors.historySVG).classList.remove('spin');
     return;
   }
-  file.dataset.ndx = exists;
+  file.dataset.ndx = ndx;
   try {
     await download({ ...file.dataset });
   } catch (error) {
