@@ -59,12 +59,19 @@ async function saveFile(chunks, name, ndx) {
  * @param {String} name 
  * @param {Number} ndx 
  */
-function downloadFinished(update, name, ndx) {
-  const {chunks} = update.detail;
-  saveFile(chunks, name, ndx);
-  em.removeByNamespace(ndx);
-  uiManager.downloadEnded(ndx, 'Download complete.');
-  logCompleted(name, ndx, true);
+async function downloadFinished(update, name, ndx) {
+  try {
+    const {chunks} = update.detail;
+    await saveFile(chunks, name, ndx);
+    em.removeByNamespace(ndx);
+    uiManager.downloadEnded(ndx, 'Download complete.');
+    await logCompleted(name, ndx, true);
+  } catch (error) {
+    console.error(`Error finishing download for ${name}:`, error);
+    em.removeByNamespace(ndx); // Ensure cleanup even on error
+    uiManager.downloadEnded(ndx, 'Download failed.');
+    await logCompleted(name, ndx, false);
+  }
 }
 
 /**
@@ -80,13 +87,14 @@ function userStopped(name, ndx) {
 }
 
 /**
- * download a file
+ * Downloads a file and manages its UI representation
  * 
- * @param {Object} obj
- * @param {String} obj.path
- * @param {String} obj.name
- * 
- * @returns {Boolean}
+ * @param {Object} options - Download options
+ * @param {string} options.path - File path to download
+ * @param {string} options.name - Display name of the file
+ * @param {number} options.ndx - Unique identifier for this download
+ * @returns {Promise<void>}
+ * @throws {Error} When download fails or is aborted
  */
 async function download({ path, name, ndx }) {
   uiManager.setButtonDisabledState(selectors.clearHistoryButton, true);
@@ -150,7 +158,34 @@ async function fileClicked(file) {
   }
 }
 
-em.add(window, 'load', _ => uiManager.init(fileClicked));
+/**
+ * browesr support
+ */
+function checkBrowserSupport() {
+  const requirements = {
+    fetch: 'fetch' in window,
+    streams: 'ReadableStream' in window,
+    blob: 'Blob' in window
+  };
+  
+  const missing = Object.entries(requirements)
+    .filter(([, supported]) => !supported)
+    .map(([feature]) => feature);
+    
+  if (missing.length > 0) {
+    throw new Error(`Browser missing required features: ${missing.join(', ')}`);
+  }
+}
+
+em.add(window, 'load', async () => {
+  try {
+    checkBrowserSupport();
+    await uiManager.init(fileClicked);
+  } catch (error) {
+    console.error(`Error in initialization:`, error);
+  }
+});
+
 em.add(window, 'beforeunload', _ => {
   em.removeAll();
   uiManager.destroy();
