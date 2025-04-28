@@ -43,8 +43,9 @@ return function (App $app) {
   });
 
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
-    $file = $settings['app']['file-path'] . '/' . $args['file'];
-    if (realpath($file) === false || strpos(realpath($file), realpath($settings['app']['file-path'])) !== 0) {
+    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
+    $file = $userPath . '/' . $args['file'];
+    if (realpath($file) === false || strpos(realpath($file), realpath($userPath)) !== 0) {
       $logger->warning('Forbidden access: ' . $file);
       return Helpers\jsonResponse($response, ['error' => 'Forbidden access', 'file' => $file], 403);
     }
