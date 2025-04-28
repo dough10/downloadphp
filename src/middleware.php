@@ -10,8 +10,9 @@ $settings = require __DIR__ . '/../config/settings.php';
 return function (App $app) use ($settings) {
   $container = $app->getContainer();
   $logger = $container->get('logger');
+  $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
   
-  $app->add(function (Request $request, RequestHandler $handler) use ($settings): Response {
+  $app->add(function (Request $request, RequestHandler $handler) use ($userPath): Response {
     $header = $request->getHeaderLine('Authorization');
     if (!empty($header)) {
       $_SESSION['username'] = Helpers\decodeAuthHeader($header);
@@ -19,7 +20,6 @@ return function (App $app) use ($settings) {
       $_SESSION['username'] = 'default';
     }
 
-    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     if (!file_exists($userPath)) {
       mkdir($userPath, 0755, true);
     }
