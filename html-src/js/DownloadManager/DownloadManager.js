@@ -1,4 +1,3 @@
-// import Toast from '../Toast/Toast.js';
 import Download from '../Download/Download.js';
 
 export default class DownloadManager {
@@ -10,20 +9,31 @@ export default class DownloadManager {
   }
 
   /**
-   * Gets the list of active downloads.
+   * Gets the count of active downloads.
    * 
-   * @returns {Array<Download>} - The active downloads.
+   * @returns {Number} - The active download count.
    */
   get activeDownloads() {
-    return this._downloads;
+    return this._downloads.length;
   }
 
   /**
-   * Marks a pending download as completed.
+   * removes a download object from 'this._download' array by it's ndx
+   * 
+   * @param {Number} ndx 
+   */
+  _removeNdx(ndx) {
+    const ndxToRemove = this._downloads.findIndex(item => item.ndx === ndx);
+    if (ndx !== -1) this._downloads.splice(ndxToRemove, 1);
+  }
+
+  /**
+   * Marks a pending download as completed. (failed, calceled, completed)
    * 
    * @param {string} name - The name of the file.
    * @param {number} ndx - The index of the download.
    * @param {string} status - The status to set.
+   * 
    * @returns {Array} - The updated download list.
    */
   async markCompleted(name, ndx, status) {
@@ -40,9 +50,10 @@ export default class DownloadManager {
       }
       const updates = await res.json();
       updates.reverse();
+      this._removeNdx(ndx);
       return updates;
     } catch (error) {
-      throw new Error(`Error marking ${name} as completed: ${error.message}`);
+      throw new Error(`Error setting completed status: ${error.message}`);
     }
   }
 
@@ -69,21 +80,19 @@ export default class DownloadManager {
    * 
    * @returns {Object}
    */
-  async getFile(path) {
-    try {
-      const abortController = new AbortController();
-      const signal = abortController.signal;
+  async getFile(path, ndx) {
+    const abortController = new AbortController();
+    const signal = abortController.signal;
 
-      const res = await fetch(path, { signal });
-      if (!res.ok) {
-        console.error(res);
-        throw new Error(`Failed getting file: ${path}`);
-      }
-      const contentLength = res.headers.get('Content-Length');
-      const dl = new this._Downloader(res, contentLength, abortController);
-      this._downloads.push(dl);
-      return dl;
-    } catch(error) {}
+    const res = await fetch(path, { signal });
+    if (!res.ok) {
+      console.error(res);
+      throw new Error(`Failed getting file: ${path}`);
+    }
+    const contentLength = res.headers.get('Content-Length');
+    const dl = new this._Downloader(res, contentLength, abortController, ndx);
+    this._downloads.push(dl);
+    return dl;
   }
 
   /**
