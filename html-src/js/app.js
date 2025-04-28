@@ -3,7 +3,7 @@ import UIManager from "./UIManager/UIManager.js";
 import DownloadManager from "./DownloadManager/DownloadManager.js";
 import EventManager from "./utils/EventManager/EventManager.js";
 import selectors from "./utils/selectors.js";
-import init from './dialog/dialog.js';
+
 
 const em = new EventManager();
 const downloadManager = new DownloadManager();
@@ -24,8 +24,7 @@ const eventNamespaces = {
 async function logCompleted(name, ndx, status) {
   try {
     const updates = await downloadManager.markCompleted(name, ndx, status);
-    const htmlElements = updates.map(uiManager.createLogEntry);
-    document.querySelector(selectors.historyList).replaceChildren(...htmlElements);      
+    uiManager.updateHistory(updates);      
   } catch(error) {
     console.error(error)
   }
@@ -100,28 +99,27 @@ async function download({ path, name, ndx }) {
     em.add(fileDownload, 'stopped', _ => userStopped(name, ndx), ndx);
     fileDownload.start();
   } catch (error) {
-    console.error('Error during download:', error);
+    em.removeByNamespace(ndx);
+    console.error(`Error during download of ${name} (${path}):`, error);
     new Toast((error.name === 'AbortError') ? 'Download canceled.' : `Failed to fetch ${path}`);
   }
 }
 
 /**
- * records a download to the php session
+ * records a started download to the php session
+ * downloadManager responds with a list of current downloads. downloads[0] if newest download
+ * uiManager updates history dialog
  * 
  * @param {String} file
  * 
  * @returns {Boolean}
  */
-async function recordDownload(file) {
+async function initateDownload(file) {
   try {
     document.querySelector(selectors.historySVG).classList.add('spin');
     const { downloads } = await downloadManager.recordDownload(file);
-    const elementList = downloads.map(uiManager.createLogEntry);
-    elementList.reverse();
-    const historyList = document.querySelector(selectors.historyList);
-    historyList.replaceChildren(...elementList);
     console.log(`${downloads.length} download(s) logged`);
-    return elementList[0].dataset.ndx;
+    return uiManager.updateHistory(downloads);
   } catch (error) {
     console.error('Error recording download:', error);
     new Toast('Failed to record download.');
@@ -137,22 +135,23 @@ async function recordDownload(file) {
  * @returns {void}
  */
 async function fileClicked(file) {
-  const exists = await recordDownload(file.dataset.name);
+  const exists = await initateDownload(file.dataset.name);
   if (!exists) {
     document.querySelector(selectors.historySVG).classList.remove('spin');
     return;
   }
   file.dataset.ndx = exists;
-  await download({...file.dataset});
+  try {
+    await download({ ...file.dataset });
+  } catch (error) {
+    console.error(`Error handling file click for ${file.dataset.name}:`, error);
+  } finally {
+    document.querySelector(selectors.historySVG).classList.remove('spin');
+  }
 }
 
-/**
- * load application
- */
-function loaded() {
-  init();
-  uiManager.init(fileClicked);
-}
-
-em.add(window, 'load', loaded);
-em.add(window, 'beforeunload', em.removeAll);
+em.add(window, 'load', _ => uiManager.init(fileClicked));
+em.add(window, 'beforeunload', _ => {
+  em.removeAll();
+  uiManager.destroy();
+});

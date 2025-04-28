@@ -49,7 +49,6 @@ export default class DownloadManager {
         throw new Error(`Failed updating ${name} completed status`);
       }
       const updates = await res.json();
-      updates.reverse();
       this._removeNdx(ndx);
       return updates;
     } catch (error) {
@@ -71,7 +70,8 @@ export default class DownloadManager {
       body: postBody
     });
     if (!res.ok) throw new Error('Download record failed');
-    return await res.json();
+    const data = await res.json();
+    return data;
   }
 
   /**

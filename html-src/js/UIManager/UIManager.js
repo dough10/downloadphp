@@ -1,6 +1,6 @@
 import Toast from "../Toast/Toast.js";
 import selectors from "../utils/selectors.js";
-
+import {initiateDialogs, destroy} from '../dialog/dialog.js';
 import EventManager from "../utils/EventManager/EventManager.js";
 
 const em = new EventManager();
@@ -148,9 +148,36 @@ export default class UIManager {
   }
 
   /**
+   * pushes an array of downloads to the history dialog
+   * 
+   * @param {Array} downloads 
+   * 
+   * @returns {String} newest elements index: (database id)
+   */
+  updateHistory(downloads) {
+    if (typeof downloads !== 'object') {
+      return;
+    }
+    const htmlElements = downloads.map(this.createLogEntry);
+    htmlElements.reverse();
+    const historyList = document.querySelector(selectors.historyList);
+    historyList.replaceChildren(...htmlElements);
+    return htmlElements[0]?.dataset.ndx;
+  }
+
+  /**
+   * 
+   */
+  destroy() {
+    destroy();
+    em.removeAll();
+  }
+
+  /**
    * makes file list interactive
    */
   init(fileClicked) {
+    initiateDialogs(this);
     const files = document.querySelectorAll(selectors.file);
     files.forEach(file => {
       em.add(file, 'click', _ => fileClicked(file))

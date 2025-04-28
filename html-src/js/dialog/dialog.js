@@ -6,7 +6,9 @@ import Toast from "../Toast/Toast";
 
 const em = new EventManager();
 const downloadManager = new DownloadManager();
-const uiManager = new UIManager();
+
+/** @type {UIManager} passed in instance of UIManager */ 
+let uiManager;
 
 /**
  * click when dialog open
@@ -45,16 +47,24 @@ async function clearHistory(clearButton) {
     return;
   }
   clearButton.setAttribute('disabled', true);
-  const data = await downloadManager.clearHistory();
-  const htmlElements = data.map(uiManager.createLogEntry);
-  new Toast('History cleared.');
-  const list = document.querySelector('#history>ul');
-  list.replaceChildren(...htmlElements);
-  clearButton.removeAttribute('disabled');
+  try {
+    const data = await downloadManager.clearHistory();
+    new Toast('History cleared.');
+    uiManager.updateHistory(data);
+  } catch(error) {
+    console.error('Failed clearing download history:', error);
+  } finally {
+    clearButton.removeAttribute('disabled');
+  }
+}
+
+export function destroy() {
+  em.removeAll();
 }
 
 
-export default function init() {
+export function initiateDialogs(uim) {
+  uiManager = uim
   const clearButton = document.querySelector('#history>.clear');
   em.add(clearButton, 'click', _ => {
     clearHistory(clearButton);
