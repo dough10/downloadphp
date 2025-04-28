@@ -5,18 +5,29 @@ use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Psr\Http\Message\ResponseInterface as Response;
 use App\Helpers;
 
-return function (App $app) {
+$settings = require __DIR__ . '/../config/settings.php';
+
+return function (App $app) use ($settings) {
   $container = $app->getContainer();
   $logger = $container->get('logger');
   
-  $app->add(function (Request $request, RequestHandler $handler): Response {
+  $app->add(function (Request $request, RequestHandler $handler) use ($settings): Response {
     $header = $request->getHeaderLine('Authorization');
-    $_SESSION['username'] = Helpers\decodeAuthHeader($header);
+    if (!empty($header)) {
+      $_SESSION['username'] = Helpers\decodeAuthHeader($header);
+    } else {
+      $_SESSION['username'] = 'default';
+    }
+
+    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
+    if (!file_exists($userPath)) {
+      mkdir($userPath, 0755, true);
+    }
+
     return $handler->handle($request);
   });
 
-  $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
-    $settings = require __DIR__ . '/../config/settings.php';
+  $app->add(function (Request $request, RequestHandler $handler) use ($logger, $settings): Response {   
     if (!isset($_SESSION['request_count'])) {
       $_SESSION['request_count'] = 0;
       $_SESSION['first_request_time'] = time();
