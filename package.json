@@ -9,16 +9,19 @@
     "prebuild": "rm -f public/*.css && rm -f public/*.js && rm -f templates/*.phtml && rm -f public/session.php",
     "build": "npx webpack --mode production",
     "postbuild": "bash post.sh",
-    "host": "cd public && php -S localhost:8080"
+    "host": "cd public && php -S localhost:8080",
+    "test": "web-test-runner 'html-src/js/**/*.test.js' --node-resolve"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@open-wc/testing": "^4.0.0",
     "clean-webpack-plugin": "^4.0.0",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.2",
     "mini-css-extract-plugin": "^2.9.2",
+    "sinon": "^20.0.0",
     "terser-webpack-plugin": "^5.3.14",
     "webpack": "^5.99.6",
     "webpack-cli": "^6.0.1"

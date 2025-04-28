@@ -1,80 +1,42 @@
 import Toast from "./Toast/Toast.js";
+import UIManager from "./UIManager/UIManager.js";
+import DownloadManager from "./DownloadManager/DownloadManager.js";
+import EventManager from "./utils/EventManager/EventManager.js";
+
+import sleep from "./utils/sleep.js";
+import selectors from "./utils/selectors.js";
+
+import init from "./dialog/dialog.js";
+
+const uiManager = new UIManager();
+const downloadManager = new DownloadManager();
+const em = new EventManager();
+
+
+const eventNamespaces = {
+  DOWNLOAD: 'download'
+}
 
 /**
  * List of files actively being downloaded
  */
-let activedownloads = [];
-
-/**
- * wait an ammout of time
- * 
- * 
- * @param {ms} milliseconds
- * 
- * @returns {Promise<Void>} Nothing 
- */
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-/**
- * creates html entry for download log
- * 
- * @param {Object} dl
- * @param {String} dl.name
- * @param {String} dl.path
- * 
- * @returns {HTMLElement}
- */
-function createLogEntry(dl) {
-  const name = document.createElement('strong');
-  name.textContent = dl.name;
-
-  const status = document.createElement('span');
-  status.textContent = dl.status;
-
-  const li = document.createElement('li');
-  li.append(name, status);
-  li.dataset.ndx = dl.id;
-  return li;
-}
-
-/**
- * format bytes to be readable by humans
- * 
- * @param {Number} bytes
- * 
- * @returns {String}
- */
-function formatBytes(bytes) {
-  if (isNaN(bytes)) return 'Error';
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  if (bytes === 0) return '0 B';
-  const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-  return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
-}
+let activedownloads = []; 
 
 /**
  * makes a pending file as complete in download logs
  * 
  * @param {String} name
+ * @param {Number} ndx
+ * @param {String} status
  */
 async function logCompleted(name, ndx, status) {
-  const postBody = new FormData();
-  postBody.append('file', name);
-  postBody.append('ndx', ndx);
-  const res = await fetch(`file-status/${ndx}/${status}`, {
-    method: 'POST',
-    body: postBody
-  });
-  if (!res.ok) {
-    new Toast(`Failed updating ${name} completed status`);
-    return;
+  try {
+    const updates = await downloadManager.markCompleted(name, ndx, status);
+    const htmlElements = updates.map(uiManager.createLogEntry);
+    document.querySelector('#history>ul').replaceChildren(...htmlElements);      
+  } catch(error) {
+    console.error(error)
   }
-  const updates = await res.json();
-  updates.reverse();
-  const html = updates.map(createLogEntry);
-  document.querySelector('#history>ul').replaceChildren(...html);      
 }
 
 /**
@@ -83,7 +45,7 @@ async function logCompleted(name, ndx, status) {
  * @param {Bytes} chunks 
  * @param {String} name 
  */
-async function cueFileSave(chunks, name, ndx) {
+async function saveFile(chunks, name, ndx) {
   const fileBlob = new Blob(chunks);
   const link = document.createElement('a');
   link.href = URL.createObjectURL(fileBlob);
@@ -93,146 +55,16 @@ async function cueFileSave(chunks, name, ndx) {
   logCompleted(name, ndx, true);
 }
 
-/**
- * cleans up finished download
- * 
- * @param {String} name filename
- * @param {HTMLElement} dls download list ui
- * @param {HTMLElement} row the current download
- */
-function cleanupDownload(name, ndx, dls, row) {
-  if ((dls.querySelectorAll('.row').length) <= 1) {
-    dls.removeAttribute('open');
-  }
-  row.remove();
-  const ndxToRemove = activedownloads.findIndex(item => item.name === name && item.ndx === ndx);
-  if (ndx !== -1) activedownloads.splice(ndxToRemove, 1);
+function downloadFinished(update, name, ndx, row) {
+  const {chunks} = update.detail;
+  saveFile(chunks, name, ndx);
+  em.removeByNamespace(eventNamespaces.DOWNLOAD);
+  uiManager.downloadEnded(row, 'Download complete.');
 }
 
-/**
- * creates download progress UI
- * 
- * @param {String} name filename
- * 
- * @returns {Object} ui
- */
-function createDownloadUI(name, abortController, ndx) {
-  const bar = document.createElement('div');
-  bar.classList.add('bar');
-  
-  const barWapper = document.createElement('div');
-  barWapper.classList.add('bar-wrapper');
-  barWapper.append(bar);
-
-  const filename = document.createElement('div');
-  filename.textContent = name;
-  const dlSpeed = document.createElement('div');
-  dlSpeed.textContent = '0B/s';
-
-  const dlInfo = document.createElement('div');
-  dlInfo.classList.add('dl-info');
-  dlInfo.append(filename, dlSpeed);
-  
-  const dlWrapper = document.createElement('div');
-  dlWrapper.title = `downloading: ${name}`;
-  dlWrapper.classList.add('dl-wrapper');
-  dlWrapper.append(barWapper, dlInfo);
-
-  const svgPath = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-  svgPath.setAttribute("d", "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
-  svgPath.setAttribute('fill', 'red');
-
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-  svg.append(svgPath);
-  svg.setAttribute('viewBox', "0 0 24 24");
-
-  const cancelButton = document.createElement('button');
-  cancelButton.title = 'cancel download';
-  cancelButton.classList.add('small-button', 'margin-t-minus');
-  cancelButton.append(svg);
-
-  const row = document.createElement('div');
-  row.classList.add('row');
-  row.append(dlWrapper, cancelButton);
-
-  const dls = document.querySelector('#dls');
-  dls.append(row);
-  dls.setAttribute('open', true);
-
-  cancelButton.addEventListener('click', _ => {
-    abortController.abort();
-    document.querySelector('#hist_but>svg').classList.remove('spin');
-    bar.style.transform = `translateX(-100%)`;
-    cleanupDownload(name, ndx, dls, row);
-  });
-  return {row, dlSpeed, bar};
-}
-
-/**
- * downloads a file, calculates % and rate and updates ui
- * 
- * @param {Object} res response
- * @param {Number} contentLength bytes to be downloaded
- * @param {Number} ndx index of download entry in sqlite
- * @param {Object} ui ui elements that need updating
- * 
- * @returns {bytes} 
- */
-async function getFile(res, ui, name, ndx, contentLength) {
-  const reader = res.body.getReader();
-  const startTime = Date.now();
-  let lastTime = startTime;
-  const chunks = [];
-  let loadedBytes = 0;
-  let lastLoadedBytes = 0;
-  const totalBytes = parseInt(contentLength, 10);
-  let speed = 0;
-
-  console.log(`Content-Length: ${formatBytes(totalBytes)}`)
-
-  while (true) {
-    const { done, value } = await reader.read();
-    const currentTime = Date.now();
-    const timeElapsed = currentTime - lastTime;
-    if (done) {
-      ui.bar.style.transform = `translateX(-0%)`;
-      if (!speed) speed = formatBytes(totalBytes / (timeElapsed / 1000));
-      ui.dlSpeed.textContent = `100% @ ${speed}/s`;
-      console.log(`${name} -> ${ui.dlSpeed.textContent}`);
-      new Toast('Download Complete.', 2);
-      await sleep(500);
-      cleanupDownload(name, ndx, dls, ui.row);
-      break;
-    }
-    loadedBytes += value.length;
-    chunks.push(value);
-    const progress = (loadedBytes / totalBytes) * 100;
-    ui.bar.style.transform = `translateX(-${100 - progress}%)`;
-    ui.dlSpeed.textContent = `${progress.toFixed(1)}% @ ${speed}/s`;
-    debounceLog(name, ui.dlSpeed.textContent);
-    if (timeElapsed >= 1000) {
-      const bytesDownloaded = loadedBytes - lastLoadedBytes;
-      const downloadSpeed = bytesDownloaded / (timeElapsed / 1000);
-      speed = formatBytes(downloadSpeed);
-      lastTime = currentTime;
-      lastLoadedBytes = loadedBytes;
-    }
-  }
-  return chunks;
-}
-
-let lastPrint = Date.now()
-/**
- * debounce console log
- * 
- * @param {String} name
- * @param {String} rate
- */
-function debounceLog(name, rate) {
-  const now = Date.now();
-  if ((now - lastPrint) < 600) return;
-  console.log(`${name} -> ${rate}`);
-  lastPrint = now;
+function userStopped(row) {
+  em.removeByNamespace(eventNamespaces.DOWNLOAD);
+  uiManager.downloadEnded(row, 'Download stopped by user');
 }
 
 /**
@@ -245,35 +77,36 @@ function debounceLog(name, rate) {
  * @returns {Boolean}
  */
 async function download({path, name, ndx}) {
-  const clearButton = document.querySelector('#history>.clear');
-  clearButton.setAttribute('disabled', true);
-  const abortController = new AbortController();
-  const signal = abortController.signal;
+  // event namespace
+  const ns = eventNamespaces.DOWNLOAD;
+
+  // disable clear button
+  uiManager.setButtonDisabledState(selectors.clearHistoryButton, true);
+
+  // Toast message
   new Toast(`Downloading: ${name}`, 1);
-  let ui;
+
   try {
-    const res = await fetch(path, { signal });
-    if (!res.ok) {
-      new Toast(`Failed to fetch ${path}`);
-      return;
-    }
-    const contentLength = res.headers.get('Content-Length');
-    ui = createDownloadUI(name, abortController, ndx);
-    const chunks = await getFile(res, ui, name, ndx, contentLength);
-    cueFileSave(chunks, name, ndx);
+    const fileDownload = await downloadManager.getFile(path);
+
+    const {row, dlSpeed, bar} = uiManager.createDownloadUI(name, _ => {
+      em.removeByNamespace(ns);
+      fileDownload.stop();
+      uiManager.setButtonDisabledState(selectors.clearHistoryButton, false);
+      uiManager.cleanupDownload(row);
+    }, ndx);
+    
+    em.add(fileDownload, 'update', update => uiManager.progressUpdated(update, bar, dlSpeed), ns);
+    em.add(fileDownload, 'finished', update => downloadFinished(update, name, ndx, row), ns);
+    em.add(fileDownload, 'stopped', _ => userStopped(row), ns);
+    
+    fileDownload.start();
   } catch(error) {
-    if (error.name === 'AbortError') {
-      new Toast('Download canceled.');
-      logCompleted(name, ndx, 'canceled');
-    } else {
-      new Toast(`Failed to fetch ${path}`);
-      console.error('An error occurred during the fetch:', error);
-      logCompleted(name, ndx, 'failed');
-    }
-    await sleep(1000);
-    cleanupDownload(name, ndx, document.querySelector('#dls'), ui.row);
+    const errorMessage = (error.name === 'AbortError') ? 'Download canceled.' : `Failed to fetch ${path}`;
+    new Toast(errorMessage);
+    // console.error(error);
+    await sleep(2000);
   }
-  clearButton.removeAttribute('disabled');
 }
 
 /**
@@ -284,20 +117,13 @@ async function download({path, name, ndx}) {
  * @returns {Boolean}
  */
 async function recordDownload(file) {
-  const postBody = new FormData();
-  postBody.append('file', file);
-  const res = await fetch(`request-file/${file}`, {
-    method: 'POST',
-    body: postBody
-  });
-  if (!res.ok) return false;
-  const downloaded = await res.json();
-  const liList = downloaded.downloads.map(createLogEntry);
-  liList.reverse();
-  const list = document.querySelector('#history>ul');
-  list.replaceChildren(...liList);
-  console.log(`${downloaded.downloads.length} download(s) logged`);
-  return liList[0].dataset.ndx;
+  const {downloads} = await downloadManager.recordDownload(file);
+  const elementList = downloads.map(uiManager.createLogEntry);
+  elementList.reverse();
+  const historyList = document.querySelector('#history>ul');
+  historyList.replaceChildren(...elementList);
+  console.log(`${downloads.length} download(s) logged`);
+  return elementList[0].dataset.ndx;
 }
 
 /**
@@ -314,96 +140,13 @@ async function fileClicked(file) {
     return;
   }
   file.dataset.ndx = exists;
-  activedownloads.push({
-    name: file.dataset.name, 
-    ndx: file.dataset.ndx
-  });
   await download({...file.dataset});
   document.querySelector('#hist_but>svg').classList.remove('spin');
 }
 
-/**
- * clear history ui
- * 
- * @param {HTMLElement} clearButton button clicked
- * 
- * @returns {void}
- */
-async function clearHistory(clearButton) {
-  const none = document.querySelectorAll('#history>ul>li').length < 1;
-  if (none) {
-    new Toast('Nothing to clear.');
-    return;
-  }
-  clearButton.setAttribute('disabled', true);
-  const res = await fetch('reset', {method: 'POST'});
-  clearButton.removeAttribute('disabled');
-  if (!res.ok) {
-    new Toast('Error: resetting history');
-    return;
-  }
-  const data = await res.json();
-  new Toast('History cleared.');
-  const list = document.querySelector('#history>ul');
-  list.innerHTML = '';
-}
 
-/**
- * add ui interactions to element
- * 
- * @param {HTMLElement} file 
- */
-function addFileInteractions(file) {
-  file.addEventListener('click', _ => fileClicked(file));
-  file.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === 'Space') {
-      event.preventDefault();
-      file.click();
-    }
-  });
-}
 
-/**
- * click when dialog open
- * 
- * @param {Event} event 
- * @param {HTMLElement} dialog 
- */
-function dialogClicked(event, dialog) {
-  const closeButton = dialog.querySelector('.small-button.close');
-  const animationend = _ => {
-    dialog.removeEventListener('animationend', animationend);
-    closeButton.classList.remove('attention');
-    dialog.classList.remove('dialog-attention');
-  };
-  var rect = dialog.getBoundingClientRect();
-  var isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
-    rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
-  if (!isInDialog) {
-    if (sound) document.querySelector('#error').play();
-    dialog.addEventListener('animationend', animationend);
-    closeButton.classList.add('attention');
-    dialog.classList.add('dialog-attention');
-  }
-}
 
-/**
- * document scrolled callback
- */
-let lastTop = 0;
-function documentScroll() {
-  const toTop = document.querySelector('.to-top');
-  const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-  if (scrollTop < lastTop) {
-    toTop.setAttribute('disabled', true);
-  } else if (scrollTop > 0) {
-    toTop.removeAttribute('disabled');
-  } else {
-    toTop.setAttribute('disabled', true);
-  }
-
-  lastTop = scrollTop;
-}
 
 /**
  * checks for avtive downloads before navigating away from page
@@ -413,41 +156,49 @@ function documentScroll() {
  * @returns {String}
  */
 function checkActiveDownloads(event) {
+  event.preventDefault();
+  event.returnValue = '';
+
   if (!activedownloads.length) {
+    em.removeAll();
     return;
   }
-  activedownloads.forEach(dl => logCompleted(dl.name, dl.ndx, 'canceled'));
-  const message = 'Download(s) active. Are you sure you want to leave?';
-  event.returnValue = message; 
-  return message;
+
+  const confirmed = confirm('Download(s) active. Are you sure you want to leave?');
+  console.log(confirmed);
+  if (confirmed) {
+    activedownloads.forEach(dl => logCompleted(dl.name, dl.ndx, 'canceled'));
+    activedownloads = [];
+    window.location.href = event.target.href || window.location.href;
+    em.removeAll();
+  }
 }
 
 /**
  * app loaded callback
  */
 function appLoaded() {
-  const files = document.querySelectorAll('.file');
-  files.forEach(addFileInteractions);
+  init();
 
-  const clearButton = document.querySelector('#history>.clear');
-  clearButton.addEventListener('click', _ => clearHistory(clearButton));
+  const files = document.querySelectorAll(selectors.file);
+  files.forEach(file => {
+    em.add(file, 'click', _ => fileClicked(file))
+    em.add(file, 'keydown', (event) => {
+      if (event.key === 'Enter' || event.key === 'Space') {
+        event.preventDefault();
+        file.click();
+      }
+    });
+  });
 
-  document.querySelector('#hist_but').addEventListener('click', _ => document.querySelector('#history').showModal());
-
-  const toTop = document.querySelector('.to-top');
-  toTop.addEventListener('click', _ => document.documentElement.scrollTo({
+  const toTop = document.querySelector(selectors.toTop);
+  em.add(toTop, 'click', _ => document.documentElement.scrollTo({
     top: 0,
     behavior: 'smooth'
   }));
   
-  document.onscroll = documentScroll;
-
-  const dialogs = document.querySelectorAll('dialog');
-  dialogs.forEach(dialog => dialog.addEventListener('click', event => dialogClicked(event, dialog)));
-  
-  document.querySelectorAll('dialog>.close').forEach(button => button.addEventListener('click', _ => button.parentElement.close()));
-
-  window.addEventListener('beforeunload', checkActiveDownloads);    
+  em.add(document, 'scroll', uiManager.documentScrolled);
 }
 
-window.onload = appLoaded;
+em.add(window, 'load', appLoaded);
+// em.add(window, 'beforeunload', checkActiveDownloads); 
