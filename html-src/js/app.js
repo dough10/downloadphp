@@ -103,6 +103,8 @@ async function download({ path, name, ndx }) {
     fileDownload.start();
   } catch (error) {
     em.removeByNamespace(ndx);
+    uiManager.downloadEnded(ndx, 'Download failed.');
+    await logCompleted(name, ndx, 'failed');
     console.error(`Error during download of ${name} (${path}):`, error);
     new Toast((error.name === 'AbortError') ? 'Download canceled.' : `Failed to fetch ${path}`);
   }
