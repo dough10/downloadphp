@@ -107,7 +107,56 @@ function formatFileSize($bytes) {
   };
 }
 
+/**
+ * 
+ * 
+ */
 function jsonResponse(Response $response, $data, $status = 200) {
   $response->getBody()->write(json_encode($data));
   return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
+}
+
+/**
+ * Generates JavaScript code for session management
+ * 
+ * @param \App\Models\Db $db Database instance for fetching download history
+ * @return string JavaScript code for session management
+ */
+function sessionjs($db) {
+  $js = "const user = 'User: {$_SESSION['username']}';\n";
+  $js .= "const id = 'Session ID: " . session_id() . "';\n";
+  $js .= "const previous = " . json_encode($db->getDownloads()) . ".length;\n\n";
+  
+  $js .= "const lsState = Number(localStorage.getItem('sound'));\n\n";
+  
+  $js .= "let licenseDisplayed = false;\n\n";
+  
+  $js .= "const soundLicense = '<--\\n";
+  $js .= "access denied buzz by Jacco18\\n";
+  $js .= "https://freesound.org/s/419023/\\n";
+  $js .= "License: Creative Commons 0\\n";
+  $js .= "-->';\n\n";
+  
+  $js .= "let sound = Boolean(lsState);\n\n";
+  
+  // Fix deprecated string interpolation
+  $js .= "function toggleSoundFX() {\n";
+  $js .= "  sound = !sound;\n";
+  $js .= "  if (sound && !licenseDisplayed) {\n";
+  $js .= "    licenseDisplayed = true;\n";
+  $js .= "    console.log(soundLicense);\n";
+  $js .= "  }\n";
+  $js .= "  localStorage.setItem('sound', Number(sound));\n";
+  $js .= "  return 'SoundFX: ' + (sound ? 'On' : 'Off');\n";
+  $js .= "}\n\n";
+  
+  $js .= "if (sound && !licenseDisplayed) {\n";
+  $js .= "  licenseDisplayed = true;\n";
+  $js .= "  console.log(soundLicense);\n";
+  $js .= "}\n";
+  
+  // Fix deprecated string interpolation
+  $js .= "console.log(user + '\\n' + id + '\\nPrevious downloads: ' + previous);\n";
+  
+  return $js;
 }

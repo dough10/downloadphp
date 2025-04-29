@@ -85,6 +85,12 @@ return function (App $app) {
     }
   });
 
+  $app->get('/session.js', function (Request $request, Response $response) use ($database) {
+    $response = $response->withHeader('Content-Type', 'application/javascript');
+    $response->getBody()->write(Helpers\sessionjs($database));
+    return $response;
+  });
+
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     try {
