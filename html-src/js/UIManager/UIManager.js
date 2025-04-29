@@ -60,7 +60,7 @@ export default class UIManager {
 
     const svgPath = document.createElementNS("http://www.w3.org/2000/svg", 'path');
     svgPath.setAttribute("d", "M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
-    svgPath.setAttribute('fill', 'red');
+    svgPath.setAttribute('fill', 'currentColor');
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
     svg.append(svgPath);
