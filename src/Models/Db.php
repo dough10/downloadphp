@@ -31,7 +31,7 @@ class Db {
     } catch (PDOException $e) {
       throw new Exception('PDO error creating database file: ' . $e->getMessage());
     } catch (Exception $e) {
-      throw new Exception('Failed to create database file: ' . $e->getMessage());
+      throw new Exception($this->formatErrorMessage('create database file', $e->getMessage()));
     }
   }
 
@@ -63,7 +63,7 @@ class Db {
         throw new Exception('Failed saving entry to database');
       }
     } catch (PDOException $e) {
-      throw new Exception('Failed to insert download: ' . $e->getMessage());
+      throw new Exception($this->formatErrorMessage('nsert download', $e->getMessage()));
     } 
   }
 
@@ -74,7 +74,7 @@ class Db {
    * 
    * @return array
    */
-  public function getDownloads($username) {
+  public function getDownloads(string $username) {
     try {
       $query = "SELECT * FROM downloads where username = :username;";
       $stmt = $this->pdo->prepare($query);
@@ -87,7 +87,7 @@ class Db {
         return $download;
       }, $result);
     } catch (PDOException $e) {
-      throw new Exception("error geting download list: ". $e->getMessage());
+      throw new Exception($this->formatErrorMessage("get download list",  $e->getMessage()));
     }
   }
 
@@ -121,14 +121,14 @@ class Db {
    * 
    * @return void
    */
-  public function clearDownloads($username):void {
+  public function clearDownloads(string $username):void {
     try {
       $query = 'DELETE FROM downloads where username = :username';
       $stmt = $this->pdo->prepare($query);
       $stmt->bindParam(":username", $username);
       $stmt->execute();
     } catch (PDOException $e) {
-      throw new Exception('Failed to clear downloads: ' . $e->getMessage());
+      throw new Exception($this->formatErrorMessage('clear downloads', $e->getMessage()));
     }
   }
 
@@ -139,7 +139,7 @@ class Db {
    * 
    * @return int
    */
-  private function validateAndSanitizeId($id) {
+  private function validateAndSanitizeId(string $id) {
     if (!filter_var($id, FILTER_VALIDATE_INT)) {
       throw new Exception('Invalid ID provided. ID must be a valid intager');
     }
@@ -154,14 +154,14 @@ class Db {
    * 
    * @return void
    */
-  public function downloadStatusChanged($ndx, $status) {
+  public function downloadStatusChanged(int $ndx, string $status) {
     $ndx = $this->validateAndSanitizeId($ndx);
     $status = htmlspecialchars($status, ENT_QUOTES, $this->appSettings['app']['encoding']);
     return match($status) {
       'true' => $this->updateDownloadStatus($ndx, self::STATUS_COMPLETE),
       'canceled' => $this->updateDownloadStatus($ndx, self::STATUS_CANCELED),
       'failed' => $this->updateDownloadStatus($ndx, self::STATUS_FAILED),
-      default => throw new Exception('Invalid completed status.'),
+      default => throw new Exception($this->formatErrorMessage('set complete status', 'Invalid status.')),
     };
   }
 
@@ -173,8 +173,7 @@ class Db {
    * 
    * @return string
    */
-  private function formatErrorMessage(string $operation, string $error): string
-  {
+  private function formatErrorMessage(string $operation, string $error): string {
     return sprintf('Failed to %s: %s', $operation, $error);
   }
 }
