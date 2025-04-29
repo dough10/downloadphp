@@ -1,0 +1,32 @@
+const user = 'User: {{USERNAME}}';
+const id = 'Session ID: {{SESSION_ID}}';
+const previous = {{DOWNLOADS}}.length;
+
+const lsState = Number(localStorage.getItem('sound'));
+
+let licenseDisplayed = false;
+
+const soundLicense = '<--\n\
+access denied buzz by Jacco18\n\
+https://freesound.org/s/419023/\n\
+License: Creative Commons 0\n\
+-->';
+
+let sound = Boolean(lsState);
+
+function toggleSoundFX() {
+  sound = !sound;
+  if (sound && !licenseDisplayed) {
+    licenseDisplayed = true;
+    console.log(soundLicense);
+  }
+  localStorage.setItem('sound', Number(sound));
+  return 'SoundFX: ' + (sound ? 'On' : 'Off');
+}
+
+if (sound && !licenseDisplayed) {
+  licenseDisplayed = true;
+  console.log(soundLicense);
+}
+
+console.log(user + '\n' + id + '\nPrevious downloads: ' + previous);

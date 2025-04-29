@@ -29,6 +29,7 @@ js_path=app.min.$version.js
 template=templates/downloads.phtml
 
 html-minifier html-src/downloads.phtml --collapse-whitespace --decode-entities --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype  --output $template
+cp html-src/*.template templates
 
 replace_path ./base.css "./$css_path" $template
 replace_path ./app.js "./$js_path" $template

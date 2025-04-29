@@ -123,38 +123,17 @@ function jsonResponse(Response $response, $data, $status = 200) {
  * @return string JavaScript code for session management
  */
 function sessionjs($db) {
-  $js = "const user = 'User: " . htmlspecialchars($_SESSION['username']) . "';\n";
-  $js .= "const id = 'Session ID: " . session_id() . "';\n";
-  $js .= "const previous = " . json_encode($db->getDownloads()) . ".length;\n\n";
+  $template = file_get_contents(__DIR__ . '/../../templates/session.js.template');
   
-  $js .= "const lsState = Number(localStorage.getItem('sound'));\n\n";
+  $replacements = [
+    '{{USERNAME}}' => htmlspecialchars($_SESSION['username']),
+    '{{SESSION_ID}}' => session_id(),
+    '{{DOWNLOADS}}' => json_encode($db->getDownloads())
+  ];
   
-  $js .= "let licenseDisplayed = false;\n\n";
-  
-  $js .= "const soundLicense = '<--\\n";
-  $js .= "access denied buzz by Jacco18\\n";
-  $js .= "https://freesound.org/s/419023/\\n";
-  $js .= "License: Creative Commons 0\\n";
-  $js .= "-->';\n\n";
-  
-  $js .= "let sound = Boolean(lsState);\n\n";
-  
-  $js .= "function toggleSoundFX() {\n";
-  $js .= "  sound = !sound;\n";
-  $js .= "  if (sound && !licenseDisplayed) {\n";
-  $js .= "    licenseDisplayed = true;\n";
-  $js .= "    console.log(soundLicense);\n";
-  $js .= "  }\n";
-  $js .= "  localStorage.setItem('sound', Number(sound));\n";
-  $js .= "  return 'SoundFX: ' + (sound ? 'On' : 'Off');\n";
-  $js .= "}\n\n";
-  
-  $js .= "if (sound && !licenseDisplayed) {\n";
-  $js .= "  licenseDisplayed = true;\n";
-  $js .= "  console.log(soundLicense);\n";
-  $js .= "}\n";
-
-  $js .= "console.log(user + '\\n' + id + '\\nPrevious downloads: ' + previous);\n";
-  
-  return $js;
+  return str_replace(
+    array_keys($replacements),
+    array_values($replacements),
+    $template
+  );
 }
