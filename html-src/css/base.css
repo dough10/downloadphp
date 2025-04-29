@@ -3,7 +3,8 @@
   --body-color:rgb(185, 185, 185);
   --file-border: 1px solid rgba(161, 161, 161, 0.3);
   --card-color: rgb(255, 255, 255);
-  --focus-border: 1px solid var(--text-color); 
+  --focus-border: 1px solid var(--text-color);
+  --disabled-color: #8b8b8b;
 }
 body {
   font-family: 'Roboto', 'Noto', sans-serif;
