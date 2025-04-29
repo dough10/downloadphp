@@ -9,6 +9,11 @@ class Db {
   private $pdo;
   private $appSettings;
 
+  private const STATUS_PENDING = 'pending';
+  private const STATUS_COMPLETE = 'complete';
+  private const STATUS_CANCELED = 'canceled';
+  private const STATUS_FAILED = 'failed';
+
   /**
    * create db file
    * 
@@ -19,8 +24,10 @@ class Db {
       $this->appSettings = require __DIR__ .'/../../config/settings.php';
       $this->pdo = new PDO($this->appSettings['database']['dsn']);
       $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-      $createTableQuery = "CREATE TABLE IF NOT EXISTS downloads (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT NOT NULL);";
+      $createTableQuery = "CREATE TABLE IF NOT EXISTS downloads (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT NOT NULL, username TEXT NOT NULL);";
       $this->pdo->exec($createTableQuery);
+      $createIndexQuery = "CREATE INDEX IF NOT EXISTS idx_downloads_username ON downloads(username);";
+      $this->pdo->exec($createIndexQuery);
     } catch (PDOException $e) {
       throw new Exception('PDO error creating database file: ' . $e->getMessage());
     } catch (Exception $e) {
@@ -36,7 +43,7 @@ class Db {
    * 
    * @return mixed
    */
-  public function insertDownloadEntry($name) {
+  public function insertDownloadEntry(string $name, string $username): int {
     $name = trim($name);
 
     if (strlen($name) > 255) {
@@ -44,11 +51,12 @@ class Db {
     }
 
     try {
-      $status = 'pending';
-      $insertQuery = "INSERT INTO downloads (name, status) VALUES (:name, :status);";
+      $status = self::STATUS_PENDING;
+      $insertQuery = "INSERT INTO downloads (name, status, username) VALUES (:name, :status, :username);";
       $stmt = $this->pdo->prepare($insertQuery);
       $stmt->bindParam(":name", $name);
       $stmt->bindParam(":status", $status);
+      $stmt->bindParam(":username", $username);
       if ($stmt->execute()) {
         return $this->pdo->lastInsertId();
       } else {
@@ -66,10 +74,11 @@ class Db {
    * 
    * @return array
    */
-  public function getDownloads() {
+  public function getDownloads($username) {
     try {
-      $query = "SELECT * FROM downloads;";
+      $query = "SELECT * FROM downloads where username = :username;";
       $stmt = $this->pdo->prepare($query);
+      $stmt->bindParam(":username", $username);
       $stmt->execute();
       $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
       return array_map(function ($download) {
@@ -83,15 +92,15 @@ class Db {
   }
 
   /**
-   * update the status
+   * Updates the status of a download
+   *
+   * @param int    $id     Download ID
+   * @param string $status New status
    * 
-   * @param string $dbFilename
-   * @param string $id
-   * @param string $status
-   * 
+   * @throws Exception If status update fails
    * @return void
    */
-  private function updateDownloadStatus($id, $status) {
+  private function updateDownloadStatus(int $id, string $status): void {
     $id = $this->validateAndSanitizeId($id);
     $status = htmlspecialchars($status, ENT_QUOTES, $this->appSettings['app']['encoding']);
     try {
@@ -101,7 +110,7 @@ class Db {
       $stmt->bindParam(':id', $id);
       $stmt->execute();
     } catch (PDOException $e) {
-      throw new Exception('Failed to update download status: ' . $e->getMessage());
+      throw new Exception($this->formatErrorMessage('update download status', $e->getMessage()));
     }
   }
 
@@ -112,10 +121,11 @@ class Db {
    * 
    * @return void
    */
-  public function clearDownloads():void {
+  public function clearDownloads($username):void {
     try {
-      $query = 'DELETE FROM downloads';
+      $query = 'DELETE FROM downloads where username = :username';
       $stmt = $this->pdo->prepare($query);
+      $stmt->bindParam(":username", $username);
       $stmt->execute();
     } catch (PDOException $e) {
       throw new Exception('Failed to clear downloads: ' . $e->getMessage());
@@ -148,10 +158,23 @@ class Db {
     $ndx = $this->validateAndSanitizeId($ndx);
     $status = htmlspecialchars($status, ENT_QUOTES, $this->appSettings['app']['encoding']);
     return match($status) {
-      'true' => $this->updateDownloadStatus($ndx, 'complete'),
-      'canceled' => $this->updateDownloadStatus($ndx, 'canceled'),
-      'failed' => $this->updateDownloadStatus($ndx, 'failed'),
+      'true' => $this->updateDownloadStatus($ndx, self::STATUS_COMPLETE),
+      'canceled' => $this->updateDownloadStatus($ndx, self::STATUS_CANCELED),
+      'failed' => $this->updateDownloadStatus($ndx, self::STATUS_FAILED),
       default => throw new Exception('Invalid completed status.'),
     };
+  }
+
+  /**
+   * format error message
+   * 
+   * @param string $operation
+   * @param string $error
+   * 
+   * @return string
+   */
+  private function formatErrorMessage(string $operation, string $error): string
+  {
+    return sprintf('Failed to %s: %s', $operation, $error);
   }
 }
