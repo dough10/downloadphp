@@ -123,7 +123,7 @@ function jsonResponse(Response $response, $data, $status = 200) {
  * @return string JavaScript code for session management
  */
 function sessionjs($db) {
-  $js = "const user = 'User: {$_SESSION['username']}';\n";
+  $js = "const user = 'User: " . htmlspecialchars($_SESSION['username']) . "';\n";
   $js .= "const id = 'Session ID: " . session_id() . "';\n";
   $js .= "const previous = " . json_encode($db->getDownloads()) . ".length;\n\n";
   
@@ -139,7 +139,6 @@ function sessionjs($db) {
   
   $js .= "let sound = Boolean(lsState);\n\n";
   
-  // Fix deprecated string interpolation
   $js .= "function toggleSoundFX() {\n";
   $js .= "  sound = !sound;\n";
   $js .= "  if (sound && !licenseDisplayed) {\n";
@@ -154,8 +153,7 @@ function sessionjs($db) {
   $js .= "  licenseDisplayed = true;\n";
   $js .= "  console.log(soundLicense);\n";
   $js .= "}\n";
-  
-  // Fix deprecated string interpolation
+
   $js .= "console.log(user + '\\n' + id + '\\nPrevious downloads: ' + previous);\n";
   
   return $js;
