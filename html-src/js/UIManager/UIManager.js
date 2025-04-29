@@ -80,7 +80,10 @@ export default class UIManager {
     dls.append(row);
     dls.setAttribute('open', true);
 
-    cancelButton.addEventListener('click', stop);
+    cancelButton.addEventListener('click', _ => {
+      cancelButton.setAttribute('disabled', true);
+      stop();
+    });
     return {dlSpeed, bar};
   } 
 
