@@ -55,9 +55,9 @@ return function (App $app) {
       return Helpers\jsonResponse($response, ['error' => 'File not found', 'file' => $file], 404);
     }
     try {
-      $ndx = $database->insertDownloadEntry($file);
+      $ndx = $database->insertDownloadEntry($file, $_SESSION['username']);
       $logger->info($request->getUri()->getPath() . ', id: ' . $ndx);
-      $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads()];
+      $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads($_SESSION['username'])];
       return Helpers\jsonResponse($response, $retData, 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
@@ -68,7 +68,7 @@ return function (App $app) {
   $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
       $database->downloadStatusChanged($args['ndx'], $args['status']);
-      return Helpers\jsonResponse($response, $database->getDownloads(), 200);
+      return Helpers\jsonResponse($response, $database->getDownloads($_SESSION['username']), 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
       return Helpers\jsonResponse($response, ['error' => $e->getMessage()], 500);
@@ -77,8 +77,8 @@ return function (App $app) {
 
   $app->post('/reset', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
-      $database->clearDownloads();
-      return Helpers\jsonResponse($response, $database->getDownloads(), 200);
+      $database->clearDownloads($_SESSION['username']);
+      return Helpers\jsonResponse($response, $database->getDownloads($_SESSION['username']), 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
       return Helpers\jsonResponse($response, ['error' => $e->getMessage()], 500);
@@ -100,7 +100,7 @@ return function (App $app) {
         'username' => $_SESSION['username'],
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
-        'downloadList' => $database->getDownloads()
+        'downloadList' => $database->getDownloads($_SESSION['username'])
       ];
       return $renderer->render($response, 'downloads.phtml', $viewData)->withStatus(200);
     } catch (Exception $e) {

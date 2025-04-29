@@ -128,7 +128,7 @@ function sessionjs($db) {
   $replacements = [
     '{{USERNAME}}' => htmlspecialchars($_SESSION['username']),
     '{{SESSION_ID}}' => session_id(),
-    '{{DOWNLOADS}}' => json_encode($db->getDownloads())
+    '{{DOWNLOADS}}' => json_encode($db->getDownloads($_SESSION['username']))
   ];
   
   return str_replace(
