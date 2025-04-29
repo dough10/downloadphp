@@ -50,14 +50,6 @@ return function (App $app) use ($settings) {
     return $handler->handle($request);
   });
 
-  $app->add(function (Request $request, RequestHandler $handler) {
-    if (!isset($_SESSION['username'])) {
-      $response = new  \Slim\Psr7\Response();
-      return Helpers\jsonResponse($response, ['error' => 'Unauthorized'], 401);
-    }
-    return $handler->handle($request);
-  });
-
   $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
     $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
     return $handler->handle($request);
