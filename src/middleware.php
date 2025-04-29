@@ -52,7 +52,8 @@ return function (App $app) use ($settings) {
   });
 
   $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
-    $logger->info(Helpers\getUserIP() . ' (' . $_SESSION['username'] . ') ' . $request->getUri()->getPath());
+    $username = $_SESSION['username'] ?? 'default';
+    $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
     return $handler->handle($request);
   });
 };
