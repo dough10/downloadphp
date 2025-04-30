@@ -6,13 +6,28 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Views\PhpRenderer;
 use App\Helpers;
 
-
+/**
+ * Configure and return application routes
+ * Sets up all HTTP endpoints and their handlers
+ * 
+ * @param App $app Slim application instance
+ */
 return function (App $app) {
   $settings = require __DIR__ . '/../config/settings.php';
   $container = $app->getContainer();
   $database = $container->get('database');
   $logger = $container->get('logger');
 
+  /**
+   * Stream file download
+   * GET /files/{file}
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @param array $args Route parameters containing file name
+   * @throws Exception On file access/read errors
+   * @return Response File stream or error response
+   */
   $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
     $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     $file = $userPath . '/' . basename($args['file']);
@@ -43,6 +58,15 @@ return function (App $app) {
     return $response->withStatus(200);
   });
 
+  /**
+   * Request new file download
+   * POST /request-file/{file}
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @param array $args Route parameters containing file name
+   * @return Response JSON with download ID and list
+   */  
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     $file = $userPath . '/' . basename($args['file']);
@@ -65,6 +89,15 @@ return function (App $app) {
     }
   });
 
+  /**
+   * Update download status
+   * POST /file-status/{ndx}/{status}
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @param array $args Route parameters [ndx: download ID, status: new status]
+   * @return Response JSON with updated download list
+   */  
   $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
       $database->downloadStatusChanged($args['ndx'], $args['status']);
@@ -75,6 +108,15 @@ return function (App $app) {
     }
   });
 
+  /**
+   * Clear download history
+   * POST /reset
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @param array $args Route parameters
+   * @return Response JSON with empty download list
+   */  
   $app->post('/reset', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
       $database->clearDownloads($_SESSION['username']);
@@ -85,12 +127,29 @@ return function (App $app) {
     }
   });
 
+  /**
+   * Get session JavaScript
+   * GET /session.js
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @return Response JavaScript code for session management
+   */  
   $app->get('/session.js', function (Request $request, Response $response) use ($database) {
     $response = $response->withHeader('Content-Type', 'application/javascript');
     $response->getBody()->write(Helpers\sessionjs($database));
     return $response;
   });
 
+  /**
+   * Render main application page
+   * GET /
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @param array $args Route parameters
+   * @return Response HTML page or error JSON
+   */  
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     try {
@@ -109,6 +168,15 @@ return function (App $app) {
     }
   });
 
+  /**
+   * Handle 404 Not Found
+   * ANY /{routes:.+}
+   * Catches all undefined routes
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @return Response JSON 404 error
+   */  
   $app->any('/{routes:.+}', function (Request $request, Response $response) use ($logger) {
     $logger->info('404 ' . $request->getUri()->getPath());
     return Helpers\jsonResponse($response, ['error' => 'File not found'], 404);
