@@ -4,3 +4,4 @@
 *.db
 *.ini
 /node_modules
+/.vscode
