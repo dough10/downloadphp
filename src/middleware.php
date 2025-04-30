@@ -7,10 +7,24 @@ use App\Helpers;
 
 $settings = require __DIR__ . '/../config/settings.php';
 
+/**
+ * Application middleware configuration
+ * Sets up authentication, rate limiting, and logging
+ * 
+ * @param App $app Slim application instance
+ */
 return function (App $app) use ($settings) {
   $container = $app->getContainer();
   $logger = $container->get('logger');
   
+  /**
+   * Authentication middleware
+   * Handles user authentication and directory creation
+   * 
+   * @param Request $request HTTP request
+   * @param RequestHandler $handler Request handler
+   * @return Response Response from next middleware
+   */  
   $app->add(function (Request $request, RequestHandler $handler) use ($settings): Response {
     $header = $request->getHeaderLine('Authorization');
     if (!empty($header)) {
@@ -28,6 +42,14 @@ return function (App $app) use ($settings) {
     return $handler->handle($request);
   });
 
+  /**
+   * Rate limiting middleware
+   * Implements request rate limiting per session
+   * 
+   * @param Request $request HTTP request
+   * @param RequestHandler $handler Request handler
+   * @return Response Response or 429 if rate limit exceeded
+   */  
   $app->add(function (Request $request, RequestHandler $handler) use ($logger, $settings): Response {   
     if (!isset($_SESSION['request_count'])) {
       $_SESSION['request_count'] = 0;
@@ -51,6 +73,14 @@ return function (App $app) use ($settings) {
     return $handler->handle($request);
   });
 
+  /**
+   * Logging middleware
+   * Logs all incoming requests with user and path info
+   * 
+   * @param Request $request HTTP request
+   * @param RequestHandler $handler Request handler
+   * @return Response Response from next middleware
+   */  
   $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
     $username = $_SESSION['username'] ?? 'default';
     $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
