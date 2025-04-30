@@ -1,57 +1,66 @@
 <?php
+
 namespace App\Helpers;
 
 use Psr\Http\Message\ResponseInterface as Response;
 
 /**
- * creates a list of downloadable files
+ * Creates a list of downloadable files from a directory
  * 
- * @param string $dir
- * @param array $allowedExtensions
- * 
- * @return array|bool
+ * @param string $dir Directory path to scan
+ * @param array $allowedExtensions List of allowed file extensions
+ * @throws \RuntimeException If directory is invalid or unreadable
+ * @return array List of file information arrays
  */
-function generateFileList($dir, $allowedExtensions) {
-  // walk folder structure for files
-  $files = [];
-  if (!is_dir($dir)) {
-    error_log("Directory does not exist: $dir");
-    return false;
+function generateFileList(string $dir, array $allowedExtensions): array {
+  $realDir = realpath($dir);
+  if ($realDir === false || !is_dir($realDir)) {
+    throw new \RuntimeException("Invalid directory: $dir");
   }
-  if ($handle = opendir($dir)) {
-    while (false !== ($entry = readdir($handle))) {
-      $filePath = realpath($dir . DIRECTORY_SEPARATOR . $entry);
-      if ($entry === "." || $entry === ".." || strpos($entry, '.') === 0 || !is_file($filePath)) {
+
+  if (!is_readable($realDir)) {
+    throw new \RuntimeException("Directory not readable: $dir");
+  }
+
+  $files = [];
+  $handle = opendir($realDir);
+  if ($handle === false) {
+    throw new \RuntimeException("Failed to open directory: $dir");
+  }
+
+  try {
+    while (($entry = readdir($handle)) !== false) {
+      if ($entry[0] === '.' || $entry === '..' || !is_file($realDir . DIRECTORY_SEPARATOR . $entry)) {
         continue;
       }
 
-      if (realpath($filePath) === false || strpos(realpath($filePath), realpath($dir)) !== 0) {
+      $filePath = $realDir . DIRECTORY_SEPARATOR . $entry;
+      
+      $fileExtension = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
+      if (!in_array($fileExtension, array_map('strtolower', $allowedExtensions), true)) {
         continue;
       }
 
-      $fileExtension = pathinfo($entry, PATHINFO_EXTENSION);
-      if (!in_array($fileExtension, $allowedExtensions)) {
+      $stats = stat($filePath);
+      if ($stats === false) {
+        error_log("Failed to get stats for file: $filePath");
         continue;
       }
 
       $files[] = [
         'name' => $entry,
         'path' => basename($filePath),
-        'size' => filesize($filePath),
-        'modified' => filemtime($filePath) 
+        'size' => $stats['size'],
+        'modified' => $stats['mtime']
       ];
     }
-    closedir($handle);
 
-    // newest file to the top of list
-    usort($files, function($a, $b) {
-      return $b['modified'] - $a['modified'];
-    });
-  } else {
-    error_log("Failed to open directory: $dir");
-    return false;
+    usort($files, fn($a, $b) => $b['modified'] - $a['modified']);
+
+    return $files;
+  } finally {
+    closedir($handle);
   }
-  return $files;
 }
 
 /**
