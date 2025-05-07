@@ -10,7 +10,7 @@ const downloadManager = new DownloadManager();
 const uiManager = new UIManager();
 
 /**
- * makes a pending file as complete in download logs
+ * Logs a pending file as complete in download logs
  * 
  * @param {String} name
  * @param {Number} ndx
@@ -170,7 +170,7 @@ function checkBrowserSupport() {
     .map(([feature]) => feature);
     
   if (missing.length > 0) {
-    throw new Error(`Browser missing required features: ${missing.join(', ')}`);
+    new Toast(`Browser missing required features: ${missing.join(', ')}`);
   }
 }
 
