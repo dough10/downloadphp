@@ -131,13 +131,13 @@ function jsonResponse(Response $response, $data, $status = 200) {
  * @param \App\Models\Db $db Database instance for fetching download history
  * @return string JavaScript code for session management
  */
-function sessionjs($db) {
+function sessionjs($downloads) {
   $template = file_get_contents(__DIR__ . '/../../templates/session.js.template');
   
   $replacements = [
     '{{USERNAME}}' => htmlspecialchars($_SESSION['username']),
     '{{SESSION_ID}}' => session_id(),
-    '{{DOWNLOADS}}' => json_encode($db->getDownloads($_SESSION['username']))
+    '{{DOWNLOADS}}' => json_encode($downloads)
   ];
   
   return str_replace(
