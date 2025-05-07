@@ -137,7 +137,7 @@ return function (App $app) {
    */  
   $app->get('/session.js', function (Request $request, Response $response) use ($database) {
     $response = $response->withHeader('Content-Type', 'application/javascript');
-    $response->getBody()->write(Helpers\sessionjs($database));
+    $response->getBody()->write(Helpers\sessionjs($database->getDownloads($_SESSION['username'])));
     return $response;
   });
 
