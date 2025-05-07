@@ -1,11 +1,18 @@
 import Download from '../Download/Download.js';
 
+function checkResponseOk(res, error) {
+  if (!res.ok) {
+    throw new Error(error);
+  }
+}
+
+
 export default class DownloadManager {
   /** @type {Array<Download>} List of active downloads. */
-  _downloads = [];
+  #downloads = [];
 
   constructor(downloader) {
-    this._Downloader = downloader || Download
+    this._Download = downloader || Download
   }
 
   /**
@@ -14,29 +21,49 @@ export default class DownloadManager {
    * @returns {Number} - The active download count.
    */
   get activeDownloads() {
-    return this._downloads.length;
+    return this.#downloads.length;
   }
 
   /**
-   * removes a download object from 'this._download' array by it's ndx
+   * Gets the downloads array
+   * 
+   * @returns {Array} - the current downloads array
+   */
+  get downloads() {
+    return [...this.#downloads];
+  }
+
+  /**
+   * check if download exists for an index
+   * 
+   * @param {Number} ndx 
+   * 
+   * @returns {Boolean}
+   */
+  hasDownload(ndx) {
+    return this._downloads.some(dl => dl.ndx === ndx);
+  }
+  
+
+  /**
+   * removes a download object from 'this._downloads' array by its 'ndx'
    * 
    * @param {Number} ndx 
    */
-  _removeNdx(ndx) {
-    const ndxToRemove = this._downloads.findIndex(item => item.ndx === ndx);
-    if (ndx !== -1) this._downloads.splice(ndxToRemove, 1);
+  #removeNdx(ndx) {
+    const ndxToRemove = this.#downloads.findIndex(item => item.ndx === ndx);
+    if (ndxToRemove !== -1) this.#downloads.splice(ndxToRemove, 1);
   }
 
   /**
-   * Marks a pending download as completed. (failed, calceled, completed)
+   * Logs the completion status of a download to the backend and removes it from the active list.
    * 
    * @param {string} name - The name of the file.
-   * @param {number} ndx - The index of the download.
-   * @param {string} status - The status to set.
-   * 
-   * @returns {Array} - The updated download list.
+   * @param {number} ndx - The unique download identifier.
+   * @param {string} status - The status to set (e.g. "completed", "failed", "canceled").
+   * @returns {Array} - The updated download list from the backend.
    */
-  async markCompleted(name, ndx, status) {
+  async logCompleted(name, ndx, status) {
     try {
       const postBody = new FormData();
       postBody.append('file', name);
@@ -45,11 +72,9 @@ export default class DownloadManager {
         method: 'POST',
         body: postBody,
       });
-      if (!res.ok) {
-        throw new Error(`Failed updating ${name} completed status`);
-      }
+      checkResponseOk(res, `Failed updating ${name} completed status`);
       const updates = await res.json();
-      this._removeNdx(ndx);
+      this.#removeNdx(ndx);
       return updates;
     } catch (error) {
       throw new Error(`Error setting completed status: ${error.message}`);
@@ -69,14 +94,15 @@ export default class DownloadManager {
       method: 'POST',
       body: postBody
     });
-    if (!res.ok) throw new Error('Download record failed');
+    checkResponseOk(res, 'Download record failed');
     const data = await res.json();
     return data;
   }
 
   /**
    * 
-   * @param {String} path 
+   * @param {String} path
+   * @param {Number} ndx 
    * 
    * @returns {Object}
    */
@@ -85,13 +111,10 @@ export default class DownloadManager {
     const signal = abortController.signal;
 
     const res = await fetch(path, { signal });
-    if (!res.ok) {
-      console.error(res);
-      throw new Error(`Failed getting file: ${path}`);
-    }
+    checkResponseOk(res, `Failed getting file: ${path}`);
     const contentLength = res.headers.get('Content-Length');
-    const dl = new this._Downloader(res, contentLength, abortController, ndx);
-    this._downloads.push(dl);
+    const dl = new this._Download(res, contentLength, abortController, ndx);
+    this.#downloads.push(dl);
     return dl;
   }
 
@@ -101,7 +124,7 @@ export default class DownloadManager {
    */
   async clearHistory() {
     const res = await fetch('reset', {method: 'POST'});
-    if (!res.ok) throw new Error('download history clear failed');
+    checkResponseOk(res, 'download history clear failed');
     return await res.json();
   }
 
