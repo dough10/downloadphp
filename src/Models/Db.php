@@ -6,8 +6,8 @@ use PDOException;
 use Exception;
 
 class Db {
-  private $pdo;
-  private $appSettings;
+  private PDO $pdo;
+  private array $appSettings;
 
   private const STATUS_PENDING = 'pending';
   private const STATUS_COMPLETE = 'complete';
@@ -38,10 +38,10 @@ class Db {
   /**
    * insert a pending download
    * 
-   * @param string $dbFilename
-   * @param string $name
-   * 
-   * @return mixed
+   * @param string $name File name to download
+   * @param string $username User requesting download
+   * @throws Exception When insertion fails
+   * @return int ID of inserted record
    */
   public function insertDownloadEntry(string $name, string $username): int {
     $name = trim($name);
@@ -101,6 +101,20 @@ class Db {
    * @return void
    */
   private function updateDownloadStatus(int $id, string $status): void {
+    $validStatuses = [
+      self::STATUS_PENDING,
+      self::STATUS_COMPLETE,
+      self::STATUS_CANCELED,
+      self::STATUS_FAILED
+    ];
+    
+    if (!in_array($status, $validStatuses, true)) {
+      throw new Exception($this->formatErrorMessage(
+        'update download status',
+        'Invalid status provided'
+      ));
+    }
+
     $id = $this->validateAndSanitizeId($id);
     $status = htmlspecialchars($status, ENT_QUOTES, $this->appSettings['app']['encoding']);
     try {
@@ -121,13 +135,18 @@ class Db {
    * 
    * @return void
    */
-  public function clearDownloads(string $username):void {
+  public function clearDownloads(string $username): void {
     try {
+      $this->pdo->beginTransaction();
+      
       $query = 'DELETE FROM downloads where username = :username';
       $stmt = $this->pdo->prepare($query);
       $stmt->bindParam(":username", $username);
       $stmt->execute();
+      
+      $this->pdo->commit();
     } catch (PDOException $e) {
+      $this->pdo->rollBack();
       throw new Exception($this->formatErrorMessage('clear downloads', $e->getMessage()));
     }
   }
