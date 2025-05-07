@@ -18,7 +18,7 @@ const uiManager = new UIManager();
  */
 async function logCompleted(name, ndx, status) {
   try {
-    const updates = await downloadManager.markCompleted(name, ndx, status);
+    const updates = await downloadManager.logCompleted(name, ndx, status);
     uiManager.updateHistory(updates);      
   } catch(error) {
     console.error(error)
@@ -31,14 +31,14 @@ async function logCompleted(name, ndx, status) {
  * @param {Bytes} chunks 
  * @param {String} name 
  */
-async function saveFile(chunks, name, ndx) {
+async function saveFile(chunks, name) {
   try {
     const fileBlob = new Blob(chunks);
     const link = document.createElement('a');
     link.href = URL.createObjectURL(fileBlob);
     link.download = name;
     link.click();
-    URL.revokeObjectURL(link.href);
+    setTimeout(() => URL.revokeObjectURL(link.href), 100);
   } catch (error) {
     console.error('Error saving file:', error);
     new Toast('Failed to save file.');
@@ -57,7 +57,7 @@ async function saveFile(chunks, name, ndx) {
 async function downloadFinished(update, name, ndx) {
   try {
     const {chunks} = update.detail;
-    await saveFile(chunks, name, ndx);
+    await saveFile(chunks, name);
     em.removeByNamespace(ndx);
     uiManager.downloadEnded(ndx, 'Download complete.');
     await logCompleted(name, ndx, true);
@@ -88,7 +88,9 @@ function userStopped(name, ndx) {
  * @param {string} options.path - File path to download
  * @param {string} options.name - Display name of the file
  * @param {number} options.ndx - Unique identifier for this download
+ * 
  * @returns {Promise<void>}
+ * 
  * @throws {Error} When download fails or is aborted
  */
 async function download({ path, name, ndx }) {
