@@ -6,6 +6,7 @@
  * @returns {string} - The percentage as a string with one decimal place.
  */
 export function calculatePercent(little, big) {
+  if (big === 0) return 0;
   const p = ((little / big) * 100).toFixed(1);
   return isNaN(p) ? 0 : p;
 }
@@ -18,7 +19,8 @@ export function calculatePercent(little, big) {
  * @returns {string} - The speed in bps, kbps, or mbps.
  */
 export function calculateSpeed(bytes, time) {
-  const speedInBps = (bytes * 8) / (time / 1000); // Convert bytes to bits and calculate bits per second
+  if (time <= 0) return '0 bps';
+  const speedInBps = (bytes * 8) / (time / 1000);
   if (isNaN(speedInBps) || speedInBps === 0) {
     return '0 bps';
   }
