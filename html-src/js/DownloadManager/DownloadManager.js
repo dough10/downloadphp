@@ -41,7 +41,7 @@ export default class DownloadManager {
    * @returns {Boolean}
    */
   hasDownload(ndx) {
-    return this._downloads.some(dl => dl.ndx === ndx);
+    return this.#downloads.some(dl => dl.ndx === ndx);
   }
   
 
@@ -65,12 +65,8 @@ export default class DownloadManager {
    */
   async logCompleted(name, ndx, status) {
     try {
-      const postBody = new FormData();
-      postBody.append('file', name);
-      postBody.append('ndx', ndx);
       const res = await fetch(`file-status/${ndx}/${status}`, {
-        method: 'POST',
-        body: postBody,
+        method: 'POST'
       });
       checkResponseOk(res, `Failed updating ${name} completed status`);
       const updates = await res.json();
@@ -88,11 +84,8 @@ export default class DownloadManager {
    * @returns {Object}
    */
   async recordDownload(file) {
-    const postBody = new FormData();
-    postBody.append('file', file);
     const res = await fetch(`request-file/${file}`, {
-      method: 'POST',
-      body: postBody
+      method: 'POST'
     });
     checkResponseOk(res, 'Download record failed');
     const data = await res.json();
