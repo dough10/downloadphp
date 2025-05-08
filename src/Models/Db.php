@@ -6,8 +6,8 @@ use PDOException;
 use Exception;
 
 class Db {
-  private PDO $pdo;
-  private array $appSettings;
+  private ?PDO $pdo = null;
+  private array $appSettings = [];
 
   private const STATUS_PENDING = 'pending';
   private const STATUS_COMPLETE = 'complete';
@@ -15,13 +15,14 @@ class Db {
   private const STATUS_FAILED = 'failed';
 
   /**
-   * create db file
+   * Create database connection and initialize settings
    * 
+   * @throws Exception When database connection fails
    * @return void
    */
   public function __construct() {
     try {
-      $this->appSettings = require __DIR__ .'/../../config/settings.php';
+      $this->appSettings = require __DIR__ . '/../../config/settings.php';
       $this->pdo = new PDO($this->appSettings['database']['dsn']);
       $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $createTableQuery = "CREATE TABLE IF NOT EXISTS downloads (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, status TEXT NOT NULL, username TEXT NOT NULL);";
