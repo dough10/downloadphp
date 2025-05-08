@@ -137,7 +137,7 @@ function sessionjs($downloads) {
   $replacements = [
     '{{USERNAME}}' => htmlspecialchars($_SESSION['username']),
     '{{SESSION_ID}}' => session_id(),
-    '{{DOWNLOADS}}' => json_encode($downloads)
+    '{{DOWNLOADS}}' => count($downloads)
   ];
   
   return str_replace(
