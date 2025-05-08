@@ -32,6 +32,7 @@ describe('Download Class', () => {
     expect(calculatePercent(50, 100)).to.equal('50.0');
     expect(calculatePercent(0, 100)).to.equal('0.0');
     expect(calculatePercent(100, 100)).to.equal('100.0');
+    expect(calculatePercent(10, 0)).to.equal(0);
   });
 
   it('should calculate speed correctly', () => {
@@ -39,6 +40,8 @@ describe('Download Class', () => {
     expect(calculateSpeed(125, 1000)).to.equal('1.0 kbps');
     expect(calculateSpeed(12, 1000)).to.equal('96.0 bps');
     expect(calculateSpeed(0, 1000)).to.equal('0 bps');
+    expect(calculateSpeed(1000, 0)).to.equal('0 bps');
+    expect(calculateSpeed(1000, -100)).to.equal('0 bps');
   });
 
   it('should emit update events during download', async () => {
@@ -54,6 +57,7 @@ describe('Download Class', () => {
     download.addEventListener('update', updateSpy);
 
     await download.start();
+    expect(download.downloading).to.be.true;
 
     expect(updateSpy.callCount).to.equal(3);
     expect(updateSpy.firstCall.args[0].detail).to.include({
@@ -93,4 +97,54 @@ describe('Download Class', () => {
     expect(readerMock.cancel.calledOnce).to.be.true;
     expect(stoppedSpy.calledOnce).to.be.true;
   });
+
+  it('should handle immediate completion with no content', async () => {
+    readerMock.read.onFirstCall().resolves({ done: true });
+  
+    const download = new Download(responseMock, 3000, abortControllerMock);
+    const finishedSpy = sinon.spy();
+    download.addEventListener('finished', finishedSpy);
+  
+    await download.start();
+  
+    expect(finishedSpy.calledOnce).to.be.true;
+    expect(finishedSpy.firstCall.args[0].detail.chunks).to.be.empty;
+  });
+  
+  it('should not emit finished if stopped mid-download', async () => {
+    readerMock.read
+      .onFirstCall().resolves({ done: false, value: new Uint8Array(1000) })
+      .onSecondCall().callsFake(() => {
+        download.stop();
+        return Promise.resolve({ done: false, value: new Uint8Array(1000) });
+      });
+  
+    const download = new Download(responseMock, 3000, abortControllerMock);
+    const finishedSpy = sinon.spy();
+    const stoppedSpy = sinon.spy();
+  
+    download.addEventListener('finished', finishedSpy);
+    download.addEventListener('stopped', stoppedSpy);
+  
+    await download.start();
+  
+    expect(stoppedSpy.calledOnce).to.be.true;
+    expect(finishedSpy.called).to.be.false;
+  });
+  
+  it('should handle undefined chunk values gracefully', async () => {
+    readerMock.read
+      .onFirstCall().resolves({ done: false, value: undefined })
+      .onSecondCall().resolves({ done: true });
+  
+    const download = new Download(responseMock, 3000, abortControllerMock);
+    const finishedSpy = sinon.spy();
+    download.addEventListener('finished', finishedSpy);
+  
+    await download.start();
+  
+    expect(finishedSpy.calledOnce).to.be.true;
+    expect(finishedSpy.firstCall.args[0].detail.chunks).to.be.empty;
+  });
+  
 });
