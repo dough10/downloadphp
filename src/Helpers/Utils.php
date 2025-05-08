@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Psr7\Response as Response;
 
 /**
  * Creates a list of downloadable files from a directory
@@ -120,7 +120,7 @@ function formatFileSize($bytes) {
  * 
  * 
  */
-function jsonResponse(Response $response, $data, $status = 200) {
+function jsonResponse(Response $response, $data, $status = 200): Response {
   $response->getBody()->write(json_encode($data));
   return $response->withStatus($status)->withHeader('Content-Type', 'application/json');
 }
