@@ -148,7 +148,7 @@ async function fileClicked(file) {
     return;
   }
   try {
-    await download({ ...file.dataset });
+    await download({ ...file.dataset, ndx });
   } catch (error) {
     console.error(`Error handling file click for ${file.dataset.name}:`, error);
   }
