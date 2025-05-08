@@ -147,7 +147,6 @@ async function fileClicked(file) {
     document.querySelector(selectors.historySVG).classList.remove('spin');
     return;
   }
-  file.dataset.ndx = ndx;
   try {
     await download({ ...file.dataset });
   } catch (error) {
