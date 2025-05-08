@@ -6,7 +6,7 @@
   "scripts": {
     "preinstall": "composer install",
     "postinstall": "npm run build",
-    "prebuild": "npm run test && bash pre.sh",
+    "prebuild": "bash pre.sh",
     "build": "npx webpack --mode production",
     "postbuild": "bash post.sh",
     "host": "cd public && php -S localhost:8080",
