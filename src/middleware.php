@@ -3,9 +3,9 @@ use Slim\App;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Psr\Http\Message\ResponseInterface as Response;
+use Slim\Psr7\Response as SlimResponse;
 use App\Helpers;
 
-$settings = require __DIR__ . '/../config/settings.php';
 
 /**
  * Application middleware configuration
@@ -13,7 +13,8 @@ $settings = require __DIR__ . '/../config/settings.php';
  * 
  * @param App $app Slim application instance
  */
-return function (App $app) use ($settings) {
+return function (App $app) {
+  $settings = require __DIR__ . '/../config/settings.php';
   $container = $app->getContainer();
   $logger = $container->get('logger');
   
@@ -25,20 +26,62 @@ return function (App $app) use ($settings) {
    * @param RequestHandler $handler Request handler
    * @return Response Response from next middleware
    */  
-  $app->add(function (Request $request, RequestHandler $handler) use ($settings): Response {
+  $app->add(function (Request $request, RequestHandler $handler) use ($settings, $logger): Response {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+      session_start();
+    }
+
+    if (!empty($_SESSION['username'])) {
+      return $handler->handle($request);
+    }
+
+    $username = 'default';
     $header = $request->getHeaderLine('Authorization');
+    
     if (!empty($header)) {
-      $_SESSION['username'] = Helpers\decodeAuthHeader($header);
-    } else {
-      $_SESSION['username'] = 'default';
+      try {
+        $username = Helpers\decodeAuthHeader($header);
+        if (!preg_match('/^[a-zA-Z0-9_-]{3,32}$/', $username)) {
+          throw new \RuntimeException('Invalid username format');
+        }
+      } catch (\Exception $e) {
+        $logger->warning('Authentication failed: ' . $e->getMessage());
+        return Helpers\jsonResponse(
+          new SlimResponse(), 
+          ['error' => 'Invalid authentication'], 
+          401
+        );
+      }
     }
 
-    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
+    $_SESSION['username'] = $username;
+    
+    try {
+      $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $username;
+      $realPath = realpath(dirname($userPath));
+      
+      if ($realPath === false) {
+        throw new \RuntimeException('Invalid base path');
+      }
 
-    if (!file_exists($userPath)) {
-      mkdir($userPath, 0755, true);
+      $userDir = $realPath . DIRECTORY_SEPARATOR . basename($userPath);
+      
+      if (!file_exists($userDir)) {
+        if (!mkdir($userDir, 0775, true)) {
+          throw new \RuntimeException('Failed to create user directory');
+        }
+        $logger->info('Created directory for user: ' . $username);
+      }
+    } catch (\Exception $e) {
+      $logger->error('Directory creation failed: ' . $e->getMessage());
+      return Helpers\jsonResponse(
+        new SlimResponse(),
+        ['error' => 'Server configuration error'],
+        500
+      );
     }
 
+    $logger->info('User authenticated: ' . $username);
     return $handler->handle($request);
   });
 
@@ -64,7 +107,7 @@ return function (App $app) use ($settings) {
 
     if ($_SESSION['request_count'] >= $settings['limit']['max-requests']) {
       $logger->notice(Helpers\getUserIP() . ' (' . ($_SESSION['username'] ?? 'guest') . ') hit the rate limit');
-      $response = new \Slim\Psr7\Response();
+      $response = new SlimResponse();
       $response->getBody()->write(json_encode(['error' => 'Rate limit exceeded. Please try again later.']));
       return $response->withStatus(429)->withHeader('Content-Type', 'application/json');
     }
