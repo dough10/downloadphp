@@ -2,7 +2,6 @@
 use DI\Container;
 use Slim\Factory\AppFactory;
 
-require_once '../src/Helpers/Utils.php';
 require __DIR__ . '/../vendor/autoload.php';
 
 session_start();
