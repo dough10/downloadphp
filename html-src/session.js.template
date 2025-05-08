@@ -1,19 +1,11 @@
-(_ => {
-  const user = 'User: {{USERNAME}}';
-  const id = 'Session ID: {{SESSION_ID}}';
-  const previous = {{DOWNLOADS}}.length;
-  
+(_ => {  
   const lsState = Number(localStorage.getItem('sound'));
   window.sound = Boolean(lsState);
   
   let licenseDisplayed = false;
   
   function printLicense() {
-    const soundLicense = '<--\n\
-    access denied buzz by Jacco18\n\
-    https://freesound.org/s/419023/\n\
-    License: Creative Commons 0\n\
-    -->';
+    const soundLicense = 'access denied buzz by Jacco18\nhttps://freesound.org/s/419023/\nLicense: Creative Commons 0';
     if (window.sound && !licenseDisplayed) {
       licenseDisplayed = true;
       console.log(soundLicense);
@@ -24,12 +16,12 @@
     window.sound = !window.sound;
     printLicense();
     localStorage.setItem('sound', Number(sound));
-    return 'SoundFX: ' + (sound ? 'On' : 'Off');
+    console.log(`SoundFX: ${(sound ? 'On' : 'Off')}`);
   }
   
-  printLicense();
+  console.log(`User: {{USERNAME}}\nSession ID: {{SESSION_ID}}\nPrevious downloads: {{DOWNLOADS}}\nSoundFX: ${sound ? 'On' : 'Off'}`); 
   
-  console.log(user + '\n' + id + '\nPrevious downloads: ' + previous); 
+  printLicense();
 
   window.toggleSoundFX = toggleSoundFX;
 })();
