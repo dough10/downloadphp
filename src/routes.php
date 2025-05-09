@@ -28,7 +28,7 @@ return function (App $app) {
    * @throws Exception On file access/read errors
    * @return Response File stream or error response
    */
-  $app->get('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
+  $app->post('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
     $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
     $file = $userPath . '/' . basename($args['file']);
 
@@ -159,7 +159,8 @@ return function (App $app) {
         'username' => $_SESSION['username'],
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
-        'downloadList' => $database->getDownloads($_SESSION['username'])
+        'downloadList' => $database->getDownloads($_SESSION['username']),
+        'csrf' => $_SESSION['csrf_token']
       ];
       return $renderer->render($response, 'downloads.phtml', $viewData)->withStatus(200);
     } catch (Exception $e) {
