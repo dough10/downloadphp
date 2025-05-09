@@ -137,7 +137,8 @@ function sessionjs($downloads) {
   $replacements = [
     '{{USERNAME}}' => htmlspecialchars($_SESSION['username']),
     '{{SESSION_ID}}' => session_id(),
-    '{{DOWNLOADS}}' => count($downloads)
+    '{{DOWNLOADS}}' => count($downloads),
+    '{{CSRF}}' => $_SESSION['csrf_token']
   ];
   
   return str_replace(
