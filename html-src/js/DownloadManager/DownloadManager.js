@@ -1,6 +1,6 @@
 import Download from '../Download/Download.js';
 
-const _POST_OPTIONS = {
+export const _POST_OPTIONS = {
   method: 'POST',
   credentials: 'same-origin',
   headers: {

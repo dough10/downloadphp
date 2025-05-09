@@ -1,6 +1,7 @@
 import { expect } from '@open-wc/testing';
 import sinon from 'sinon';
 import DownloadManager from '../DownloadManager';
+import { _POST_OPTIONS } from '../DownloadManager';
 
 describe('DownloadManager Class', () => {
   let manager;
@@ -10,14 +11,6 @@ describe('DownloadManager Class', () => {
 
   const recordedData = [{ id: 1, name: 'test.json', status: 'pending' }];
   const file = 'test.json';
-  const _POST_OPTIONS = {
-    method: 'POST',
-    credentials: 'same-origin',
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest',
-      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
-    }
-  };
 
   beforeEach(() => {
     document.body.innerHTML = `
