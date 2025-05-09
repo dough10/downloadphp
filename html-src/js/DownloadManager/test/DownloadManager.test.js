@@ -10,8 +10,19 @@ describe('DownloadManager Class', () => {
 
   const recordedData = [{ id: 1, name: 'test.json', status: 'pending' }];
   const file = 'test.json';
+  const _POST_OPTIONS = {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+    }
+  };
 
   beforeEach(() => {
+    document.body.innerHTML = `
+      <meta name="csrf-token" content="9a01f3be488dd30bb4e2291cc0ac698df9cb6f2de53525eb79efdf7eb40f53ba">
+    `;
     fetchStub = sinon.stub(window, 'fetch').resolves({
       ok: true,
       headers: {
@@ -34,15 +45,14 @@ describe('DownloadManager Class', () => {
   });
 
   afterEach(() => {
+    document.body.innerHTML = '';
     fetchStub.restore();
   });
 
   it('should record a download with pending status', async () => {
     const data = await manager.recordDownload(file);
 
-    expect(fetchStub).to.have.been.calledWith(`request-file/${file}`, {
-      method: 'POST'
-    });
+    expect(fetchStub).to.have.been.calledWith(`request-file/${file}`, _POST_OPTIONS);
 
     expect(data).to.equal(recordedData);
 
@@ -53,7 +63,7 @@ describe('DownloadManager Class', () => {
 
   it('should clear history', async () => {
     const data = await manager.clearHistory();
-    expect(fetchStub).to.have.been.calledWith('reset', {method: 'POST'});
+    expect(fetchStub).to.have.been.calledWith('reset', _POST_OPTIONS);
     expect(data).to.equal(recordedData);
   });
 
@@ -66,9 +76,10 @@ describe('DownloadManager Class', () => {
     expect(manager.activeDownloads, 'should have one download active').to.equal(1);
 
     const data = await manager.logCompleted(file, ndx, status);
-    expect(fetchStub, 'should call fetch to update file status in history').to.be.calledWith(`file-status/${ndx}/${status}`, {
-      method: 'POST'
-    });
+    expect(
+      fetchStub, 
+      'should call fetch to update file status in history'
+    ).to.be.calledWith(`file-status/${ndx}/${status}`, _POST_OPTIONS);
 
     expect(data.length, 'should contain 1 download in history').to.equal(1);
     expect(manager.activeDownloads, 'should have no active downloads').to.equal(0);
