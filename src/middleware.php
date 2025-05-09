@@ -117,6 +117,37 @@ return function (App $app) {
   });
 
   /**
+   * CSRF Protection Middleware
+   */
+  $app->add(function (Request $request, RequestHandler $handler): Response {
+    if (session_status() !== PHP_SESSION_ACTIVE) {
+      session_start();
+    }
+
+    $method = strtoupper($request->getMethod());
+    $isSafeMethod = in_array($method, ['GET', 'HEAD', 'OPTIONS']);
+
+    if ($isSafeMethod) {
+      if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+      }
+      $response = $handler->handle($request);
+      return $response->withHeader('X-CSRF-Token', $_SESSION['csrf_token']);
+    }
+
+    $parsedBody = $request->getParsedBody() ?? [];
+    $csrfToken = $request->getHeaderLine('X-CSRF-Token') ?? $parsedBody['csrf_token'] ?? '';
+
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
+      $response = new SlimResponse();
+      $response->getBody()->write(json_encode(['error' => 'Invalid CSRF token']));
+      return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+    }
+
+    return $handler->handle($request);
+  });
+
+  /**
    * Logging middleware
    * Logs all incoming requests with user and path info
    * 
