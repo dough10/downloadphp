@@ -13,7 +13,7 @@ describe('DownloadManager Class', () => {
   const file = 'test.json';
 
   beforeEach(() => {
-    document.body.innerHTML = `
+    document.head.innerHTML = `
       <meta name="csrf-token" content="9a01f3be488dd30bb4e2291cc0ac698df9cb6f2de53525eb79efdf7eb40f53ba">
     `;
     fetchStub = sinon.stub(window, 'fetch').resolves({
