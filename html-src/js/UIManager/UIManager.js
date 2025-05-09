@@ -185,7 +185,7 @@ export default class UIManager {
     initiateDialogs(this);
     const files = document.querySelectorAll(selectors.file);
     files.forEach(file => {
-      em.add(file, 'click', _ => fileClicked(file))
+      em.add(file, 'click', _ => fileClicked(file));
       em.add(file, 'keydown', (event) => {
         if (event.key === 'Enter' || event.key === 'Space') {
           event.preventDefault();
