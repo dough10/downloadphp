@@ -19,7 +19,7 @@
     console.log(`SoundFX: ${(sound ? 'On' : 'Off')}`);
   }
   
-  console.log(`User: {{USERNAME}}\nSession ID: {{SESSION_ID}}\nCSRF: {{CSRF}}\nPrevious downloads: {{DOWNLOADS}}\nSoundFX: ${sound ? 'On' : 'Off'}`); 
+  console.log(`User: {{USERNAME}}\nSession ID: {{SESSION_ID}}\ncsrf_token: {{CSRF}}\nPrevious downloads: {{DOWNLOADS}}\nSoundFX: ${sound ? 'On' : 'Off'}`); 
   
   printLicense();
 
