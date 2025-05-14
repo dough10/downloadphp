@@ -1,5 +1,6 @@
 import Download from '../Download/Download.js';
 
+/** @type {Object} fetch POST request options */
 export const _POST_OPTIONS = {
   method: 'POST',
   credentials: 'same-origin',
