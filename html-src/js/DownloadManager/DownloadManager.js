@@ -1,4 +1,5 @@
 import Download from '../Download/Download.js';
+import retry from '../utils/retry.js';
 
 /** @type {Object} fetch POST request options */
 export const _POST_OPTIONS = {
@@ -81,7 +82,7 @@ export default class DownloadManager {
    */
   async logCompleted(name, ndx, status) {
     try {
-      const res = await fetch(`file-status/${ndx}/${status}`, _POST_OPTIONS);
+      const res = await retry(`file-status/${ndx}/${status}`, _POST_OPTIONS);
       checkResponseOk(res, `Failed updating ${name} completed status`);
       const updates = await res.json();
       this.#removeNdx(ndx);
@@ -98,7 +99,7 @@ export default class DownloadManager {
    * @returns {Object}
    */
   async recordDownload(file) {
-    const res = await fetch(`request-file/${file}`, _POST_OPTIONS);
+    const res = await retry(`request-file/${file}`, _POST_OPTIONS);
     checkResponseOk(res, 'Download record failed');
     const data = await res.json();
     return data;
@@ -115,7 +116,7 @@ export default class DownloadManager {
     const abortController = new AbortController();
     const signal = abortController.signal;
 
-    const res = await fetch(path, { ..._POST_OPTIONS, signal });
+    const res = await retry(path, { ..._POST_OPTIONS, signal });
     checkResponseOk(res, `Failed getting file: ${path}`);
     const contentLength = res.headers.get('Content-Length');
     const dl = new this._Download(res, contentLength, abortController, ndx);
@@ -128,7 +129,7 @@ export default class DownloadManager {
    * @returns {Object}
    */
   async clearHistory() {
-    const res = await fetch('reset', _POST_OPTIONS);
+    const res = await retry('reset', _POST_OPTIONS);
     checkResponseOk(res, 'download history clear failed');
     return await res.json();
   }
