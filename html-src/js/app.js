@@ -97,7 +97,7 @@ async function download({ path, name, ndx }) {
   uiManager.setButtonDisabledState(selectors.clearHistoryButton, true);
   new Toast(`Download began: ${name}`, 1);
   try {
-    const fileDownload = await downloadManager.getFile(path, ndx);
+    const fileDownload = await downloadManager.get(path, ndx);
     const { dlSpeed, bar } = uiManager.createDownloadUI(name, _ => fileDownload.stop(), ndx);
     em.add(fileDownload, 'update', update => uiManager.progressUpdated(update, bar, dlSpeed), ndx);
     em.add(fileDownload, 'finished', update => downloadFinished(update, name, ndx), ndx);

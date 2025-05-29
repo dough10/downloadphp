@@ -2,14 +2,14 @@ import Download from '../Download/Download.js';
 import retry from '../utils/retry.js';
 
 /** @type {Object} fetch POST request options */
-export const _POST_OPTIONS = {
+export const _POST_OPTIONS = Object.freeze({
   method: 'POST',
   credentials: 'same-origin',
   headers: {
     'X-Requested-With': 'XMLHttpRequest',
     'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
   }
-};
+});
 
 /**
  * check response object is ok
@@ -18,9 +18,7 @@ export const _POST_OPTIONS = {
  * @param {String} error 
  */
 function checkResponseOk(res, error) {
-  if (!res.ok) {
-    throw new Error(error);
-  }
+  if (!res.ok) throw new Error(error);
 }
 
 
@@ -112,7 +110,7 @@ export default class DownloadManager {
    * 
    * @returns {Object}
    */
-  async getFile(path, ndx) {
+  async get(path, ndx) {
     const abortController = new AbortController();
     const signal = abortController.signal;
 
