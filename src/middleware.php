@@ -24,9 +24,10 @@ return function (App $app) {
    * 
    * @param Request $request HTTP request
    * @param RequestHandler $handler Request handler
+   * @param Response $response 
    * @return Response Response from next middleware
    */  
-  $app->add(function (Request $request, RequestHandler $handler, Response $response) use ($settings, $logger): Response {
+  $app->add(function (Request $request, RequestHandler $handler) use ($settings, $logger): Response {
     if (session_status() !== PHP_SESSION_ACTIVE) {
       session_start();
     }
@@ -42,11 +43,16 @@ return function (App $app) {
     } catch (\Exception $e) {
       $message = 'Authentication failed: ' . $e->getMessage();
       $logger->warning($message);
-      $renderer = new PhpRenderer(__DIR__ . '/../templates');
-      $viewData = [
-        'error' => $message
-      ];
-      return $renderer->render($response, 'error.phtml', $viewData)->withStatus(200);
+      $response = new SlimResponse();
+      return $response
+        ->withHeader('Location', Helpers\auth_redirect_address($request))
+        ->withStatus(302);
+      // $renderer = new PhpRenderer(__DIR__ . '/../templates');
+      // $viewData = [
+      //   'error' => $message
+      // ];
+      // $response = new SlimResponse();
+      // return $renderer->render($response, 'error.phtml', $viewData)->withStatus(200);
     }
 
     $_SESSION['username'] = $username;
