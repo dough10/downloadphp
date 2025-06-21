@@ -33,18 +33,10 @@ return function (App $app) {
     $queryParams = $request->getQueryParams();
     $token = $queryParams['token'] ?? '';
 
-    if (!empty($token)) {
-      try {
-        $username = Helpers\decodeToken($token);
-      } catch (\Exception $e) {
-        $logger->warning('Authentication failed: ' . $e->getMessage());
-        return Helpers\jsonResponse(
-          new SlimResponse(),
-          ['error' => $e->getMessage()],
-          401
-        );
-      }
-    } else {
+    try {
+      $username = Helpers\decodeToken($token);
+    } catch (\Exception $e) {
+      $logger->warning('Authentication failed: ' . $e->getMessage());
       $response = new SlimResponse();
       return $response
         ->withHeader('Location', Helpers\auth_redirect_address($request))
