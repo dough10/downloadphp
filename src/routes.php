@@ -178,7 +178,6 @@ return function (App $app) {
    * @return Response JSON logout confirmation
    */
   $app->get('/logout', function (Request $request, Response $response) use ($settings) {
-    // Destroy local session
     if (session_status() === PHP_SESSION_ACTIVE) {
       session_unset();
       session_destroy();
