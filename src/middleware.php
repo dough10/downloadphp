@@ -4,6 +4,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as RequestHandler;
 use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Psr7\Response as SlimResponse;
+use Slim\Views\PhpRenderer;
 use App\Helpers;
 
 /**
@@ -25,22 +26,27 @@ return function (App $app) {
    * @param RequestHandler $handler Request handler
    * @return Response Response from next middleware
    */  
-  $app->add(function (Request $request, RequestHandler $handler) use ($settings, $logger): Response {
+  $app->add(function (Request $request, RequestHandler $handler, Response $response) use ($settings, $logger): Response {
     if (session_status() !== PHP_SESSION_ACTIVE) {
       session_start();
     }
 
-    $queryParams = $request->getQueryParams();
-    $token = $queryParams['token'] ?? '';
-
+    if (!empty($_SESSION['username'])) {
+      return $handler->handle($request);
+    }
+    
     try {
+      $queryParams = $request->getQueryParams();
+      $token = $queryParams['token'] ?? '';
       $username = Helpers\decodeToken($token);
     } catch (\Exception $e) {
-      $logger->warning('Authentication failed: ' . $e->getMessage());
-      $response = new SlimResponse();
-      return $response
-        ->withHeader('Location', Helpers\auth_redirect_address($request))
-        ->withStatus(302);
+      $message = 'Authentication failed: ' . $e->getMessage();
+      $logger->warning($message);
+      $renderer = new PhpRenderer(__DIR__ . '/../templates');
+      $viewData = [
+        'error' => $message
+      ];
+      return $renderer->render($response, 'error.phtml', $viewData)->withStatus(200);
     }
 
     $_SESSION['username'] = $username;
