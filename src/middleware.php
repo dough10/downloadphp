@@ -30,10 +30,6 @@ return function (App $app) {
       session_start();
     }
 
-    if (!empty($_SESSION['username'])) {
-      return $handler->handle($request);
-    }
-
     $queryParams = $request->getQueryParams();
     $token = $queryParams['token'] ?? '';
 
