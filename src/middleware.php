@@ -24,7 +24,6 @@ return function (App $app) {
    * 
    * @param Request $request HTTP request
    * @param RequestHandler $handler Request handler
-   * @param Response $response 
    * @return Response Response from next middleware
    */  
   $app->add(function (Request $request, RequestHandler $handler) use ($settings, $logger): Response {
