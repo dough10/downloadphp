@@ -50,17 +50,8 @@ return function (App $app) {
       }
     } else {
       $response = new SlimResponse();
-      $host = $request->getUri()->getHost();
-      $scheme = $request->getUri()->getScheme();
-      $port = $request->getUri()->getPort();
-      $hostWithPort = $host;
-      if ($port && !in_array($port, [80, 443])) {
-        $hostWithPort .= ':' . $port;
-      }
-      $fullHost = $scheme . '://' . $hostWithPort;
-
       return $response
-        ->withHeader('Location', $settings['app']['auth-server'] . '?next=' . $fullHost)
+        ->withHeader('Location', Helpers\auth_redirect_address($request))
         ->withStatus(302);
     }
 

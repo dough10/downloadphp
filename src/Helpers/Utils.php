@@ -96,6 +96,26 @@ function decodeToken($token): string {
 }
 
 /**
+ * authentication redirect url
+ * 
+ * @param mixed $request
+ * 
+ * @return string
+ */
+function auth_redirect_address($request): string {
+  $settings = require __DIR__ . '/../../config/settings.php';
+  $host = $request->getUri()->getHost();
+  $scheme = $request->getUri()->getScheme();
+  $port = $request->getUri()->getPort();
+  $hostWithPort = $host;
+  if ($port && !in_array($port, [80, 443])) {
+    $hostWithPort .= ':' . $port;
+  }
+  $fullHost = $scheme . '://' . $hostWithPort;
+  return $settings['app']['auth-server'] . '?next=' . $fullHost;
+}
+
+/**
  * Get users IP address
  * 
  * @return string
