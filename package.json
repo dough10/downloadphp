@@ -9,7 +9,7 @@
     "prebuild": "bash pre.sh",
     "build": "npx webpack --mode production",
     "postbuild": "bash post.sh",
-    "host": "cd public && php -S localhost:8080",
+    "host": "cd public && php -S 0.0.0.0:8080",
     "test": "./vendor/bin/phpunit ./tests/**/*.php && web-test-runner 'html-src/js/**/*.test.js' --node-resolve",
     "composer autoload": "composer dump-autoload"
   },
