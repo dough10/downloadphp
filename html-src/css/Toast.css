@@ -1,4 +1,6 @@
 .toast {
+  font-family: Roboto, Noto, sans-serif;
+  text-shadow: none;
   background: #323232;
   padding: 16px;
   display: inline-block;
