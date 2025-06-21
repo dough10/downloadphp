@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Helpers;
 
 use Slim\Psr7\Response as Response;
@@ -68,16 +67,32 @@ function generateFileList(string $dir, array $allowedExtensions): array {
  * 
  * @return string
  */
-function decodeAuthHeader($header): string {
-  if (preg_match('/^Basic\s(.+)$/i', $header, $matches)) {
-    $base64Credentials = $matches[1];
-    $credentials = base64_decode($base64Credentials);
-    list($username, $password) = explode(":", $credentials, 2);
+function decodeToken($token): string {
+  $settings = require __DIR__ . '/../../config/settings.php';
+  $url = $settings['app']['auth-server'] . '/token/verify';
+
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_POST, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['token' => $token]));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+
+  $result = curl_exec($ch);
+  if ($result === false) {
+    throw new \RuntimeException('Auth server request failed: ' . curl_error($ch));
   }
-  if (empty($username)) {
-    return "Default";
+  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+
+  if ($httpCode !== 200) {
+    throw new \RuntimeException('Auth server returned HTTP ' . $httpCode);
   }
-  return $username;
+
+  $data = json_decode($result, true);
+  if ($data['valid'] && !is_array($data) || empty($data['user'])) {
+    throw new \RuntimeException('Invalid response from auth server');
+  }
+  return (string)$data['user'];
 }
 
 /**

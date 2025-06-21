@@ -155,7 +155,6 @@ return function (App $app) {
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
-        'host' => $_SERVER['HTTP_HOST'],
         'username' => $_SESSION['username'],
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
@@ -167,6 +166,35 @@ return function (App $app) {
       $logger->error('Error rendering page: ' . $e->getMessage());
       return Helpers\jsonResponse($response, ['error' => $e->getMessage()], 500);
     }
+  });
+
+  /**
+   * Logout endpoint
+   * GET /logout
+   * Destroys the current user session and logs out from the auth server
+   * 
+   * @param Request $request HTTP request
+   * @param Response $response HTTP response
+   * @return Response JSON logout confirmation
+   */
+  $app->get('/logout', function (Request $request, Response $response) use ($settings) {
+    // Destroy local session
+    if (session_status() === PHP_SESSION_ACTIVE) {
+      session_unset();
+      session_destroy();
+      if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+          $params["path"], $params["domain"],
+          $params["secure"], $params["httponly"]
+        );
+      }
+    }
+
+    $authLogoutUrl = rtrim($settings['app']['auth-server'], '/') . '/logout';
+    return $response
+      ->withHeader('Location', $authLogoutUrl)
+      ->withStatus(302);
   });
 
   /**

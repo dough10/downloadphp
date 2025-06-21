@@ -6,7 +6,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Slim\Psr7\Response as SlimResponse;
 use App\Helpers;
 
-
 /**
  * Application middleware configuration
  * Sets up authentication, rate limiting, and logging
@@ -35,23 +34,34 @@ return function (App $app) {
       return $handler->handle($request);
     }
 
-    $username = 'default';
-    $header = $request->getHeaderLine('Authorization');
-    
-    if (!empty($header)) {
+    $queryParams = $request->getQueryParams();
+    $token = $queryParams['token'] ?? '';
+
+    if (!empty($token)) {
       try {
-        $username = Helpers\decodeAuthHeader($header);
-        if (!preg_match('/^[a-zA-Z0-9_-]{3,32}$/', $username)) {
-          throw new \RuntimeException('Invalid username format');
-        }
+        $username = Helpers\decodeToken($token);
       } catch (\Exception $e) {
         $logger->warning('Authentication failed: ' . $e->getMessage());
         return Helpers\jsonResponse(
-          new SlimResponse(), 
-          ['error' => 'Invalid authentication'], 
+          new SlimResponse(),
+          ['error' => $e->getMessage()],
           401
         );
       }
+    } else {
+      $response = new SlimResponse();
+      $host = $request->getUri()->getHost();
+      $scheme = $request->getUri()->getScheme();
+      $port = $request->getUri()->getPort();
+      $hostWithPort = $host;
+      if ($port && !in_array($port, [80, 443])) {
+        $hostWithPort .= ':' . $port;
+      }
+      $fullHost = $scheme . '://' . $hostWithPort;
+
+      return $response
+        ->withHeader('Location', $settings['app']['auth-server'] . '?next=' . $fullHost)
+        ->withStatus(302);
     }
 
     $_SESSION['username'] = $username;
@@ -132,6 +142,10 @@ return function (App $app) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
       }
       $response = $handler->handle($request);
+      $path = $request->getUri()->getPath();
+      if ($path === '/logout') {
+        return $response;
+      }
       return $response->withHeader('X-CSRF-Token', $_SESSION['csrf_token']);
     }
 

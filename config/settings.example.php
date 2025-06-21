@@ -4,6 +4,7 @@ return [
     "encoding" => "utf-8",
     "language" => "en-US",
     "file-path" => "/downloads",
+    "auth-server" => "https://example.com",
     "allowed-extensions" => [
       'json'
     ]
