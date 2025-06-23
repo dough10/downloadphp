@@ -95,6 +95,34 @@ function decodeToken($token): string {
   return (string)$data['user'];
 }
 
+function attemptTokenRefresh($refresh) {
+  $settings = require __DIR__ . '/../../config/settings.php';
+  $url = $settings['app']['auth-server'] . '/token/refresh';
+
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_POST, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['token' => $refresh]));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+
+  $result = curl_exec($ch);
+  if ($result === false) {
+    throw new \RuntimeException('Auth server request failed: ' . curl_error($ch));
+  }
+  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
+
+  if ($httpCode !== 200) {
+    throw new \RuntimeException('Auth server returned HTTP ' . $httpCode);
+  }
+
+  $data = json_decode($result, true);
+  if ($data['valid'] && !is_array($data) || empty($data['user'])) {
+    throw new \RuntimeException('Invalid response from auth server');
+  }
+  return (string)$data['sccess_token'];
+}
+
 /**
  * authentication redirect url
  * 
@@ -112,7 +140,7 @@ function auth_redirect_address($request): string {
     $hostWithPort .= ':' . $port;
   }
   $fullHost = $scheme . '://' . $hostWithPort;
-  return $settings['app']['auth-server'] . '?next=' . $fullHost;
+  return $settings['app']['auth-server'] . '?next=' . urlencode($fullHost);
 }
 
 /**

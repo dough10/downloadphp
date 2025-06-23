@@ -7,6 +7,21 @@ use Slim\Psr7\Response as SlimResponse;
 use Slim\Views\PhpRenderer;
 use App\Helpers;
 
+  function authenticate($token, $refresh, $logger) {
+    try {
+      return Helpers\decodeToken($token);
+    } catch(\Exception $e) {
+      $logger->debug($e->getMessage());
+      try {
+        $token = Helpers\attemptTokenRefresh($refresh);
+        return Helpers\decodeToken($token);
+      } catch(\Exception $e) {
+        $logger->debug($e->getMessage());
+        throw new Exception($e->getMessage());
+      }
+    }
+  }
+
 /**
  * Application middleware configuration
  * Sets up authentication, rate limiting, and logging
@@ -17,7 +32,7 @@ return function (App $app) {
   $settings = require __DIR__ . '/../config/settings.php';
   $container = $app->getContainer();
   $logger = $container->get('logger');
-  
+
   /**
    * Authentication middleware
    * Handles user authentication and directory creation
@@ -37,6 +52,7 @@ return function (App $app) {
     
     $cookies = $request->getCookieParams();
     $token = $cookies['access_token'] ?? '';
+    $refresh = $cookies['refresh_token'] ?? '';
     $token = trim($token, "\"'");
     $token = preg_replace('/^Bearer\s+/i', '', $token);
     
@@ -48,14 +64,14 @@ return function (App $app) {
     }
 
     try {
-      $username = Helpers\decodeToken($token);
+      $username = authenticate($token, $refresh, $logger);
     } catch (\Exception $e) {
+      // attempt to use $refresh token to renew before using error template
       $message = 'Authentication failed: ' . $e->getMessage();
       $logger->warning($message);
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
-        'error' => $message,
-        "token" => $token
+        'error' => $message
       ];
       $response = new SlimResponse();
       return $renderer->render($response, 'error.phtml', $viewData)->withStatus(403);
