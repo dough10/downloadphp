@@ -55,7 +55,8 @@ return function (App $app) {
       $logger->warning($message);
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
-        'error' => $message
+        'error' => $message,
+        "token" => $token
       ];
       $response = new SlimResponse();
       return $renderer->render($response, 'error.phtml', $viewData)->withStatus(403);
