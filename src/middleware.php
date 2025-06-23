@@ -37,7 +37,7 @@ return function (App $app) {
     
     $cookies = $request->getCookieParams();
     $token = $cookies['access_token'] ?? '';
-    $token = preg_replace('/^\s*Bearer\s+/i', '', $token);
+    $token = preg_replace('/^\s*Bearer+/i', '', $token);
 
     if (!$token) {
       $response = new SlimResponse();
