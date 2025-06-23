@@ -37,7 +37,8 @@ return function (App $app) {
     
     $cookies = $request->getCookieParams();
     $token = $cookies['access_token'] ?? '';
-    $token = preg_replace('/^\s*Bearer\s+/i', '', $token);
+    $token = trim($token, "\"'"); // Remove leading/trailing whitespace
+    $token = preg_replace('/^Bearer\s+/i', '', $token);
     $logger->debug('Token sent to auth server: ' . $token);
     
     if (!$token) {
