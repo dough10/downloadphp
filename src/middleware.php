@@ -37,7 +37,7 @@ return function (App $app) {
     
     $cookies = $request->getCookieParams();
     $token = $cookies['access_token'] ?? '';
-    if (stripos($token, 'Bearer ') === 0) {
+    if (stripos($token, 'Bearer\\n') === 0) {
       $token = substr($token, 7);
     }
 
