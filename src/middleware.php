@@ -35,23 +35,30 @@ return function (App $app) {
       return $handler->handle($request);
     }
     
-    try {
-      $queryParams = $request->getQueryParams();
-      $token = $queryParams['token'] ?? '';
-      $username = Helpers\decodeToken($token);
-    } catch (\Exception $e) {
-      $message = 'Authentication failed: ' . $e->getMessage();
-      $logger->warning($message);
+    $cookies = $request->getCookieParams();
+    $token = $cookies['access_token'] ?? '';
+    if (stripos($token, 'Bearer ') === 0) {
+      $token = substr($token, 7);
+    }
+
+    if (!$token) {
       $response = new SlimResponse();
       return $response
         ->withHeader('Location', Helpers\auth_redirect_address($request))
         ->withStatus(302);
-      // $renderer = new PhpRenderer(__DIR__ . '/../templates');
-      // $viewData = [
-      //   'error' => $message
-      // ];
-      // $response = new SlimResponse();
-      // return $renderer->render($response, 'error.phtml', $viewData)->withStatus(200);
+    }
+
+    try {
+      $username = Helpers\decodeToken($token);
+    } catch (\Exception $e) {
+      $message = 'Authentication failed: ' . $e->getMessage();
+      $logger->warning($message);
+      $renderer = new PhpRenderer(__DIR__ . '/../templates');
+      $viewData = [
+        'error' => $message
+      ];
+      $response = new SlimResponse();
+      return $renderer->render($response, 'error.phtml', $viewData)->withStatus(403);
     }
 
     $_SESSION['username'] = $username;
