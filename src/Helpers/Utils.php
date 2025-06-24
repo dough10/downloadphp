@@ -120,7 +120,7 @@ function attemptTokenRefresh($refresh) {
   if ($data['valid'] && !is_array($data) || empty($data['user'])) {
     throw new \RuntimeException('Invalid response from auth server');
   }
-  return (string)$data['sccess_token'];
+  return (string)$data['access_token'];
 }
 
 /**
