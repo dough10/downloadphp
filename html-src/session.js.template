@@ -24,4 +24,8 @@
   printLicense();
 
   window.toggleSoundFX = toggleSoundFX;
+
+  setTimeout(_ => {
+    new Toast('Logged in: {{USERNAME}}');
+  }, 1000);
 })();
