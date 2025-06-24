@@ -16,12 +16,12 @@ use App\Helpers;
   <title>files.sh</title>
   <meta name="csrf-token" content="<?= $csrf ?>">
   <meta name="description" content="File downloads">
+  <script type="module" async src="https://auth.dough10.me/public/customelement/user-menu.js"></script>
   <link rel="stylesheet" href="./base.css">
 </head>
 <body>
   <div id="dls" class="dl-bg"></div>
   <header aria-label="Site header">
-    <a href="/logout">logout</a>
     <h1>
       files.sh
     </h1>
@@ -163,6 +163,7 @@ if ($downloadList) {
         d="M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z"/>
     </svg>
   </button>
+  <user-menu></user-menu>
   <script type="module" src="./app.js" async></script>
   <script src="./session.js" defer></script>
 </body>
