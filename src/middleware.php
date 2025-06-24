@@ -9,6 +9,7 @@ use App\Helpers;
 
   function authenticate($token, $refresh, $logger) {
     try {
+      $logger->debug('Raw token: ' . $token);
       return Helpers\decodeToken($token, $logger);
     } catch(\Exception $e) {
       $logger->debug('Decode token failed: ' . $e->getMessage());
@@ -125,7 +126,7 @@ return function (App $app) {
     }
 
     if ($_SESSION['request_count'] >= $settings['limit']['max-requests']) {
-      $logger->notice(Helpers\getUserIP() . ' (' . ($_SESSION['username'] ?? 'guest') . ') hit the rate limit');
+      $logger->notice(Helpers\getUserIP() . ' (' . ($request->getAttribute('name')) . ') hit the rate limit');
       $response = new SlimResponse();
       $response->getBody()->write(json_encode(['error' => 'Rate limit exceeded. Please try again later.']));
       return $response->withStatus(429)->withHeader('Content-Type', 'application/json');
