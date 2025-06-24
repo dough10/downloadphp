@@ -9,7 +9,7 @@ use App\Helpers;
 
   function authenticate($token, $refresh, $logger) {
     try {
-      $logger->debug('Raw token: ' . $token);
+      // $logger->debug('Raw token: ' . $token);
       return Helpers\decodeToken($token, $logger);
     } catch(\Exception $e) {
       $logger->debug('Decode token failed: ' . $e->getMessage());
@@ -72,19 +72,24 @@ return function (App $app) {
       $response = new SlimResponse();
       return $renderer->render($response, 'error.phtml', $viewData)->withStatus(403);
     }
-
+    
+    
     $request = $request->withAttribute('name', $username);
-
-    $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
-
+    
+    
     try {
-      $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $username;
+      if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
+        throw new \RuntimeException('Invalid username format');
+      }
+      
+      $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $username);
+      $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $safeUsername;
       $realPath = realpath(dirname($userPath));
       
       if ($realPath === false) {
         throw new \RuntimeException('Invalid base path');
       }
-
+      
       $userDir = $realPath . DIRECTORY_SEPARATOR . basename($userPath);
       
       if (!file_exists($userDir)) {
@@ -101,7 +106,8 @@ return function (App $app) {
         500
       );
     }
-
+    
+    $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
     return $handler->handle($request);
   });
 
@@ -113,28 +119,28 @@ return function (App $app) {
    * @param RequestHandler $handler Request handler
    * @return Response Response or 429 if rate limit exceeded
    */  
-  $app->add(function (Request $request, RequestHandler $handler) use ($logger, $settings): Response {   
-    if (!isset($_SESSION['request_count'])) {
-      $_SESSION['request_count'] = 0;
-      $_SESSION['first_request_time'] = time();
-    }
+  // $app->add(function (Request $request, RequestHandler $handler) use ($logger, $settings): Response {   
+  //   if (!isset($_SESSION['request_count'])) {
+  //     $_SESSION['request_count'] = 0;
+  //     $_SESSION['first_request_time'] = time();
+  //   }
 
-    $timeElapsed = time() - $_SESSION['first_request_time'];
-    if ($timeElapsed > $settings['limit']['limit-window']) {
-      $_SESSION['request_count'] = 0;
-      $_SESSION['first_request_time'] = time();
-    }
+  //   $timeElapsed = time() - $_SESSION['first_request_time'];
+  //   if ($timeElapsed > $settings['limit']['limit-window']) {
+  //     $_SESSION['request_count'] = 0;
+  //     $_SESSION['first_request_time'] = time();
+  //   }
 
-    if ($_SESSION['request_count'] >= $settings['limit']['max-requests']) {
-      $logger->notice(Helpers\getUserIP() . ' (' . ($request->getAttribute('name')) . ') hit the rate limit');
-      $response = new SlimResponse();
-      $response->getBody()->write(json_encode(['error' => 'Rate limit exceeded. Please try again later.']));
-      return $response->withStatus(429)->withHeader('Content-Type', 'application/json');
-    }
+  //   if ($_SESSION['request_count'] >= $settings['limit']['max-requests']) {
+  //     $logger->notice(Helpers\getUserIP() . ' (' . ($request->getAttribute('name')) . ') hit the rate limit');
+  //     $response = new SlimResponse();
+  //     $response->getBody()->write(json_encode(['error' => 'Rate limit exceeded. Please try again later.']));
+  //     return $response->withStatus(429)->withHeader('Content-Type', 'application/json');
+  //   }
 
-    $_SESSION['request_count']++;
-    return $handler->handle($request);
-  });
+  //   $_SESSION['request_count']++;
+  //   return $handler->handle($request);
+  // });
 
   /**
    * CSRF Protection Middleware
