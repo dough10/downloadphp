@@ -45,10 +45,6 @@ return function (App $app) {
     if (session_status() !== PHP_SESSION_ACTIVE) {
       session_start();
     }
-
-    if (!empty($_SESSION['username'])) {
-      return $handler->handle($request);
-    }
     
     $cookies = $request->getCookieParams();
     $token = $cookies['access_token'] ?? '';
