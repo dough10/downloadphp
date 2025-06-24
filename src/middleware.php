@@ -9,12 +9,12 @@ use App\Helpers;
 
   function authenticate($token, $refresh, $logger) {
     try {
-      return Helpers\decodeToken($token);
+      return Helpers\decodeToken($token, $logger);
     } catch(\Exception $e) {
       $logger->debug($e->getMessage());
       try {
         $token = Helpers\attemptTokenRefresh($refresh);
-        return Helpers\decodeToken($token);
+        return Helpers\decodeToken($token, $logger);
       } catch(\Exception $e) {
         $logger->debug($e->getMessage());
         throw new Exception($e->getMessage());
@@ -66,7 +66,6 @@ return function (App $app) {
     try {
       $username = authenticate($token, $refresh, $logger);
     } catch (\Exception $e) {
-      // attempt to use $refresh token to renew before using error template
       $message = 'Authentication failed: ' . $e->getMessage();
       $logger->warning($message);
       $renderer = new PhpRenderer(__DIR__ . '/../templates');

@@ -67,7 +67,7 @@ function generateFileList(string $dir, array $allowedExtensions): array {
  * 
  * @return string
  */
-function decodeToken($token): string {
+function decodeToken($token, $logger): string {
   $settings = require __DIR__ . '/../../config/settings.php';
   $url = $settings['app']['auth-server'] . '/token/verify';
 
@@ -89,6 +89,7 @@ function decodeToken($token): string {
   }
 
   $data = json_decode($result, true);
+  $logger->debug($data);
   if ($data['valid'] && !is_array($data) || empty($data['user'])) {
     throw new \RuntimeException('Invalid response from auth server');
   }
