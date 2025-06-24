@@ -77,8 +77,9 @@ return function (App $app) {
     }
 
     $request = $request->withAttribute('name', $username);
-    // $_SESSION['username'] = $username;
-    
+
+    $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
+
     try {
       $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $username;
       $realPath = realpath(dirname($userPath));
@@ -182,9 +183,9 @@ return function (App $app) {
    * @param RequestHandler $handler Request handler
    * @return Response Response from next middleware
    */  
-  $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
-    $username = $request->getAttribute('name') ?? 'Unauthenticated';
-    $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
-    return $handler->handle($request);
-  });
+  // $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
+  //   $username = $request->getAttribute('name') ?? 'Unauthenticated';
+  //   $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
+  //   return $handler->handle($request);
+  // });
 };
