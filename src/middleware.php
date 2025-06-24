@@ -11,12 +11,12 @@ use App\Helpers;
     try {
       return Helpers\decodeToken($token, $logger);
     } catch(\Exception $e) {
-      $logger->debug($e->getMessage());
+      $logger->debug('Decode token failed: ' . $e->getMessage());
       try {
         $token = Helpers\attemptTokenRefresh($refresh);
         return Helpers\decodeToken($token, $logger);
       } catch(\Exception $e) {
-        $logger->debug($e->getMessage());
+        $logger->debug('Refresh token failed: ' . $e->getMessage());
         throw new Exception($e->getMessage());
       }
     }
