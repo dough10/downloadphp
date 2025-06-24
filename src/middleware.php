@@ -105,7 +105,6 @@ return function (App $app) {
       );
     }
 
-    $logger->info('User authenticated: ' . $username);
     return $handler->handle($request);
   });
 
@@ -174,18 +173,4 @@ return function (App $app) {
 
     return $handler->handle($request);
   });
-
-  /**
-   * Logging middleware
-   * Logs all incoming requests with user and path info
-   * 
-   * @param Request $request HTTP request
-   * @param RequestHandler $handler Request handler
-   * @return Response Response from next middleware
-   */  
-  // $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
-  //   $username = $request->getAttribute('name') ?? 'Unauthenticated';
-  //   $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
-  //   return $handler->handle($request);
-  // });
 };
