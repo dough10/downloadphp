@@ -30,7 +30,8 @@ return function (App $app) {
    */
   $app->post('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
     $user = $request->getAttribute('name');
-    $userPath = $settings['app']['file-path'] . '/' . $user;
+    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
+    $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     $file = $userPath . '/' . basename($args['file']);
 
     $realPath = realpath($file);
@@ -70,7 +71,8 @@ return function (App $app) {
    */  
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $user = $request->getAttribute('name');
-    $userPath = $settings['app']['file-path'] . '/' . $user;
+    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
+    $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     $file = $userPath . '/' . basename($args['file']);
     if (realpath($file) === false || strpos(realpath($file), realpath($userPath)) !== 0) {
       $logger->warning('Forbidden access: ' . $file);
