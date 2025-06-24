@@ -76,7 +76,8 @@ return function (App $app) {
       return $renderer->render($response, 'error.phtml', $viewData)->withStatus(403);
     }
 
-    $_SESSION['username'] = $username;
+    $request = $request->withAttribute('name', $username);
+    // $_SESSION['username'] = $username;
     
     try {
       $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $username;
@@ -115,28 +116,28 @@ return function (App $app) {
    * @param RequestHandler $handler Request handler
    * @return Response Response or 429 if rate limit exceeded
    */  
-  $app->add(function (Request $request, RequestHandler $handler) use ($logger, $settings): Response {   
-    if (!isset($_SESSION['request_count'])) {
-      $_SESSION['request_count'] = 0;
-      $_SESSION['first_request_time'] = time();
-    }
+  // $app->add(function (Request $request, RequestHandler $handler) use ($logger, $settings): Response {   
+  //   if (!isset($_SESSION['request_count'])) {
+  //     $_SESSION['request_count'] = 0;
+  //     $_SESSION['first_request_time'] = time();
+  //   }
 
-    $timeElapsed = time() - $_SESSION['first_request_time'];
-    if ($timeElapsed > $settings['limit']['limit-window']) {
-      $_SESSION['request_count'] = 0;
-      $_SESSION['first_request_time'] = time();
-    }
+  //   $timeElapsed = time() - $_SESSION['first_request_time'];
+  //   if ($timeElapsed > $settings['limit']['limit-window']) {
+  //     $_SESSION['request_count'] = 0;
+  //     $_SESSION['first_request_time'] = time();
+  //   }
 
-    if ($_SESSION['request_count'] >= $settings['limit']['max-requests']) {
-      $logger->notice(Helpers\getUserIP() . ' (' . ($_SESSION['username'] ?? 'guest') . ') hit the rate limit');
-      $response = new SlimResponse();
-      $response->getBody()->write(json_encode(['error' => 'Rate limit exceeded. Please try again later.']));
-      return $response->withStatus(429)->withHeader('Content-Type', 'application/json');
-    }
+  //   if ($_SESSION['request_count'] >= $settings['limit']['max-requests']) {
+  //     $logger->notice(Helpers\getUserIP() . ' (' . ($_SESSION['username'] ?? 'guest') . ') hit the rate limit');
+  //     $response = new SlimResponse();
+  //     $response->getBody()->write(json_encode(['error' => 'Rate limit exceeded. Please try again later.']));
+  //     return $response->withStatus(429)->withHeader('Content-Type', 'application/json');
+  //   }
 
-    $_SESSION['request_count']++;
-    return $handler->handle($request);
-  });
+  //   $_SESSION['request_count']++;
+  //   return $handler->handle($request);
+  // });
 
   /**
    * CSRF Protection Middleware
@@ -182,7 +183,7 @@ return function (App $app) {
    * @return Response Response from next middleware
    */  
   $app->add(function (Request $request, RequestHandler $handler) use ($logger): Response {
-    $username = $_SESSION['username'] ?? 'default';
+    $username = $request->getAttribute('name') ?? 'Unauthenticated';
     $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
     return $handler->handle($request);
   });

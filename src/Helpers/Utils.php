@@ -197,11 +197,11 @@ function jsonResponse(Response $response, $data, $status = 200): Response {
  * @param \App\Models\Db $db Database instance for fetching download history
  * @return string JavaScript code for session management
  */
-function sessionjs($downloads) {
+function sessionjs($user, $downloads) {
   $template = file_get_contents(__DIR__ . '/../../templates/session.js.template');
   
   $replacements = [
-    '{{USERNAME}}' => htmlspecialchars($_SESSION['username']),
+    '{{USERNAME}}' => htmlspecialchars($user),
     '{{SESSION_ID}}' => session_id(),
     '{{DOWNLOADS}}' => count($downloads),
     '{{CSRF}}' => $_SESSION['csrf_token']

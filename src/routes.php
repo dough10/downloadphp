@@ -29,7 +29,8 @@ return function (App $app) {
    * @return Response File stream or error response
    */
   $app->post('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
-    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
+    $user = $request->getAttribute('name');
+    $userPath = $settings['app']['file-path'] . '/' . $user;
     $file = $userPath . '/' . basename($args['file']);
 
     $realPath = realpath($file);
@@ -68,7 +69,8 @@ return function (App $app) {
    * @return Response JSON with download ID and list
    */  
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
-    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
+    $user = $request->getAttribute('name');
+    $userPath = $settings['app']['file-path'] . '/' . $user;
     $file = $userPath . '/' . basename($args['file']);
     if (realpath($file) === false || strpos(realpath($file), realpath($userPath)) !== 0) {
       $logger->warning('Forbidden access: ' . $file);
@@ -79,9 +81,9 @@ return function (App $app) {
       return Helpers\jsonResponse($response, ['error' => 'File not found', 'file' => $file], 404);
     }
     try {
-      $ndx = $database->insertDownloadEntry($file, $_SESSION['username']);
+      $ndx = $database->insertDownloadEntry($file, $user);
       $logger->info($request->getUri()->getPath() . ', id: ' . $ndx);
-      $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads($_SESSION['username'])];
+      $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads($user)];
       return Helpers\jsonResponse($response, $retData, 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
@@ -100,8 +102,9 @@ return function (App $app) {
    */  
   $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
+      $user = $request->getAttribute('name');
       $database->downloadStatusChanged($args['ndx'], $args['status']);
-      return Helpers\jsonResponse($response, $database->getDownloads($_SESSION['username']), 200);
+      return Helpers\jsonResponse($response, $database->getDownloads($user), 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
       return Helpers\jsonResponse($response, ['error' => $e->getMessage()], 500);
@@ -119,8 +122,9 @@ return function (App $app) {
    */  
   $app->post('/reset', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
-      $database->clearDownloads($_SESSION['username']);
-      return Helpers\jsonResponse($response, $database->getDownloads($_SESSION['username']), 200);
+      $user = $request->getAttribute('name');
+      $database->clearDownloads($user);
+      return Helpers\jsonResponse($response, $database->getDownloads($user), 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
       return Helpers\jsonResponse($response, ['error' => $e->getMessage()], 500);
@@ -136,8 +140,9 @@ return function (App $app) {
    * @return Response JavaScript code for session management
    */  
   $app->get('/session.js', function (Request $request, Response $response) use ($database) {
+    $user = $request->getAttribute('name');
     $response = $response->withHeader('Content-Type', 'application/javascript');
-    $response->getBody()->write(Helpers\sessionjs($database->getDownloads($_SESSION['username'])));
+    $response->getBody()->write(Helpers\sessionjs($user, $database->getDownloads($user)));
     return $response;
   });
 
@@ -151,14 +156,15 @@ return function (App $app) {
    * @return Response HTML page or error JSON
    */  
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
-    $userPath = $settings['app']['file-path'] . '/' . $_SESSION['username'];
+    $user = $request->getAttribute('name');
+    $userPath = $settings['app']['file-path'] . '/' . $user;
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
-        'username' => $_SESSION['username'],
+        'username' => $user,
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
-        'downloadList' => $database->getDownloads($_SESSION['username']),
+        'downloadList' => $database->getDownloads($user),
         'csrf' => $_SESSION['csrf_token']
       ];
       return $renderer->render($response, 'downloads.phtml', $viewData)->withStatus(200);
