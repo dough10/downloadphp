@@ -89,7 +89,7 @@ function decodeToken($token, $logger): string {
   }
 
   $data = json_decode($result, true);
-  // $logger->debug($data);
+  echo $data;
   if ($data['valid'] && !is_array($data) || empty($data['user'])) {
     throw new \RuntimeException('Invalid response from auth server');
   }
