@@ -157,7 +157,8 @@ return function (App $app) {
    */  
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $user = $request->getAttribute('name');
-    $userPath = $settings['app']['file-path'] . '/' . $user;
+    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
+    $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
