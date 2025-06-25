@@ -100,7 +100,12 @@ function postTokenToAuthServer(string $endpoint, string $token, string $expected
         if ($logger) $logger->error('Invalid response from auth server: ' . $result);
         throw new \RuntimeException('Invalid response from auth server');
     }
-    return (string)$data[$expectedField];
+    $value = $data[$expectedField];
+    if (is_array($value)) {
+        if ($logger) $logger->warning("Expected string for '$expectedField', got array: " . json_encode($value));
+        return json_encode($value);
+    }
+    return (string)$value;
 }
 
 /**
