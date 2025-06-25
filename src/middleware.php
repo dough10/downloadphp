@@ -129,7 +129,6 @@ return function (App $app) {
       return $response->withHeader('X-CSRF-Token', $csrfToken);
     }
 
-    // On unsafe methods, check the header and the cookie
     $csrfTokenHeader = $request->getHeaderLine('X-CSRF-Token');
     $csrfTokenCookie = $_COOKIE['csrf_token'] ?? '';
 
