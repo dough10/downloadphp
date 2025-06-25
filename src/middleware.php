@@ -108,37 +108,6 @@ return function (App $app) {
   });
 
   /**
-   * Rate limiting middleware
-   * Implements request rate limiting per session
-   * 
-   * @param Request $request HTTP request
-   * @param RequestHandler $handler Request handler
-   * @return Response Response or 429 if rate limit exceeded
-   */  
-  // $app->add(function (Request $request, RequestHandler $handler) use ($logger, $settings): Response {   
-  //   if (!isset($_SESSION['request_count'])) {
-  //     $_SESSION['request_count'] = 0;
-  //     $_SESSION['first_request_time'] = time();
-  //   }
-
-  //   $timeElapsed = time() - $_SESSION['first_request_time'];
-  //   if ($timeElapsed > $settings['limit']['limit-window']) {
-  //     $_SESSION['request_count'] = 0;
-  //     $_SESSION['first_request_time'] = time();
-  //   }
-
-  //   if ($_SESSION['request_count'] >= $settings['limit']['max-requests']) {
-  //     $logger->notice(Helpers\getUserIP() . ' (' . ($request->getAttribute('name')) . ') hit the rate limit');
-  //     $response = new SlimResponse();
-  //     $response->getBody()->write(json_encode(['error' => 'Rate limit exceeded. Please try again later.']));
-  //     return $response->withStatus(429)->withHeader('Content-Type', 'application/json');
-  //   }
-
-  //   $_SESSION['request_count']++;
-  //   return $handler->handle($request);
-  // });
-
-  /**
    * CSRF Protection Middleware
    */
   $app->add(function (Request $request, RequestHandler $handler): Response {
