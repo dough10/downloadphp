@@ -1,13 +1,18 @@
 import Download from '../Download/Download.js';
 import retry from '../utils/retry.js';
 
+function getCookie(name) {
+  return document.cookie.split('; ').find(row => row.startsWith(name + '='))
+    ?.split('=')[1];
+}
+
 /** @type {Object} fetch POST request options */
 export const _POST_OPTIONS = Object.freeze({
   method: 'POST',
   credentials: 'same-origin',
   headers: {
     'X-Requested-With': 'XMLHttpRequest',
-    'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+    'X-CSRF-Token': getCookie('csrf_token')
   }
 });
 

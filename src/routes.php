@@ -169,8 +169,7 @@ return function (App $app) {
         'picture' => $user->picture ?? '',
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
-        'downloadList' => $database->getDownloads($user->email),
-        'csrf' => $request->getAttribute('csrf_token')
+        'downloadList' => $database->getDownloads($user->email)
       ];
       return $renderer->render($response, 'downloads.phtml', $viewData)->withStatus(200);
     } catch (Exception $e) {
