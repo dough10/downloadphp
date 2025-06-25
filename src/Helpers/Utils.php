@@ -64,15 +64,14 @@ function generateFileList(string $dir, array $allowedExtensions): array {
 
 /**
  * Helper to POST a token to the auth server and return the decoded response.
- * 
+ *
  * @param string $endpoint The endpoint path (e.g., '/token/verify' or '/token/refresh')
  * @param string $token The token to send
- * @param string $expectedField The field to return from the response (e.g., 'user' or 'access_token')
  * @param mixed $logger Logger for debug (optional)
- * @return string
+ * @return array The decoded JSON response as an associative array
  * @throws \RuntimeException
  */
-function postTokenToAuthServer(string $endpoint, string $token, string $expectedField, $logger = null): string {
+function postTokenToAuthServer(string $endpoint, string $token, $logger = null): array {
     $settings = require __DIR__ . '/../../config/settings.php';
     $url = $settings['app']['auth-server'] . $endpoint;
 
@@ -96,29 +95,44 @@ function postTokenToAuthServer(string $endpoint, string $token, string $expected
     }
 
     $data = json_decode($result, true);
-    if (!is_array($data) || !$data['valid'] || empty($data[$expectedField])) {
+    if (!is_array($data) || !$data['valid']) {
         if ($logger) $logger->error('Invalid response from auth server: ' . $result);
         throw new \RuntimeException('Invalid response from auth server');
     }
-    $value = $data[$expectedField];
-    if (is_array($value)) {
-        if ($logger) $logger->warning("Expected string for '$expectedField', got array: " . json_encode($value));
-        return json_encode($value);
-    }
-    return (string)$value;
+    return $data;
 }
 
 /**
- * parse basic auth header for username
- * 
- * @return string
+ * Verifies a token and returns the decoded user info as an object.
+ *
+ * @param string $token
+ * @param mixed $logger
+ * @return object
  */
-function decodeToken($token, $logger): string {
-    return postTokenToAuthServer('/token/verify', $token, 'user', $logger);
+function decodeToken($token, $logger): object {
+    $data = postTokenToAuthServer('/token/verify', $token, $logger);
+    if (empty($data['user'])) {
+        if ($logger) $logger->error('No user field in auth server response');
+        throw new \RuntimeException('No user field in auth server response');
+    }
+    // Return as object for consistency
+    return is_array($data['user']) ? (object)$data['user'] : (object)['email' => $data['user']];
 }
 
+/**
+ * Attempts to refresh a token and returns the new access token as a string.
+ *
+ * @param string $refresh
+ * @param mixed $logger
+ * @return string
+ */
 function attemptTokenRefresh($refresh, $logger = null): string {
-    return postTokenToAuthServer('/token/refresh', $refresh, 'access_token', $logger);
+    $data = postTokenToAuthServer('/token/refresh', $refresh, $logger);
+    if (empty($data['access_token'])) {
+        if ($logger) $logger->error('No access_token field in auth server response');
+        throw new \RuntimeException('No access_token field in auth server response');
+    }
+    return (string)$data['access_token'];
 }
 
 /**
