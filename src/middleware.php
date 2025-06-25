@@ -57,7 +57,7 @@ return function (App $app) {
     }
 
     try {
-      $username = authenticate($token, $refresh, $logger);
+      $userInfo = authenticate($token, $refresh, $logger);
     } catch (\Exception $e) {
       $message = 'Authentication failed: ' . $e->getMessage();
       $logger->warning($message);
@@ -70,15 +70,15 @@ return function (App $app) {
     }
     
     
-    $request = $request->withAttribute('name', $username);
+    $request = $request->withAttribute('user-info', $userInfo);
     
     
     try {
-      if (!filter_var($username, FILTER_VALIDATE_EMAIL)) {
+      if (!filter_var($userInfo, FILTER_VALIDATE_EMAIL)) {
         throw new \RuntimeException('Invalid username format');
       }
       
-      $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $username);
+      $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $userInfo);
       $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $safeUsername;
       $realPath = realpath(dirname($userPath));
       
@@ -92,7 +92,7 @@ return function (App $app) {
         if (!mkdir($userDir, 0775, true)) {
           throw new \RuntimeException('Failed to create user directory');
         }
-        $logger->info('Created directory for user: ' . $username);
+        $logger->info('Created directory for user: ' . $userInfo);
       }
     } catch (\Exception $e) {
       $logger->error('Directory creation failed: ' . $e->getMessage());
@@ -103,7 +103,7 @@ return function (App $app) {
       );
     }
     
-    $logger->info(Helpers\getUserIP() . ' (' . $username . ') ' . $request->getUri()->getPath());
+    $logger->info(Helpers\getUserIP() . ' (' . $userInfo . ') ' . $request->getUri()->getPath());
     return $handler->handle($request);
   });
 
@@ -142,29 +142,25 @@ return function (App $app) {
    * CSRF Protection Middleware
    */
   $app->add(function (Request $request, RequestHandler $handler): Response {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-      session_start();
-    }
-
     $method = strtoupper($request->getMethod());
     $isSafeMethod = in_array($method, ['GET', 'HEAD', 'OPTIONS']);
 
     if ($isSafeMethod) {
-      if (empty($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-      }
+      $csrfToken = bin2hex(random_bytes(32));
+      $request = $request->withAttribute('csrf_token', $csrfToken);
       $response = $handler->handle($request);
       $path = $request->getUri()->getPath();
       if ($path === '/logout') {
         return $response;
       }
-      return $response->withHeader('X-CSRF-Token', $_SESSION['csrf_token']);
+      return $response->withHeader('X-CSRF-Token', $csrfToken);
     }
 
     $parsedBody = $request->getParsedBody() ?? [];
     $csrfToken = $request->getHeaderLine('X-CSRF-Token') ?? $parsedBody['csrf_token'] ?? '';
+    $expectedToken = $request->getAttribute('csrf_token');
 
-    if (!hash_equals($_SESSION['csrf_token'] ?? '', $csrfToken)) {
+    if (!hash_equals($expectedToken ?? '', $csrfToken)) {
       $response = new SlimResponse();
       $response->getBody()->write(json_encode(['error' => 'Invalid CSRF token']));
       return $response->withStatus(403)->withHeader('Content-Type', 'application/json');

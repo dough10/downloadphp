@@ -29,7 +29,7 @@ return function (App $app) {
    * @return Response File stream or error response
    */
   $app->post('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
-    $user = $request->getAttribute('name');
+    $user = $request->getAttribute('user-info');
     $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
     $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     $file = $userPath . '/' . basename($args['file']);
@@ -70,7 +70,7 @@ return function (App $app) {
    * @return Response JSON with download ID and list
    */  
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
-    $user = $request->getAttribute('name');
+    $user = $request->getAttribute('user-info');
     $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
     $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     $file = $userPath . '/' . basename($args['file']);
@@ -104,7 +104,7 @@ return function (App $app) {
    */  
   $app->post('/file-status/{ndx}/{status}', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
-      $user = $request->getAttribute('name');
+      $user = $request->getAttribute('user-info');
       $database->downloadStatusChanged($args['ndx'], $args['status']);
       return Helpers\jsonResponse($response, $database->getDownloads($user), 200);
     } catch (Exception $e) {
@@ -124,7 +124,7 @@ return function (App $app) {
    */  
   $app->post('/reset', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
-      $user = $request->getAttribute('name');
+      $user = $request->getAttribute('user-info');
       $database->clearDownloads($user);
       return Helpers\jsonResponse($response, $database->getDownloads($user), 200);
     } catch (Exception $e) {
@@ -142,7 +142,7 @@ return function (App $app) {
    * @return Response JavaScript code for session management
    */  
   $app->get('/session.js', function (Request $request, Response $response) use ($database) {
-    $user = $request->getAttribute('name');
+    $user = $request->getAttribute('user-info');
     $response = $response->withHeader('Content-Type', 'application/javascript');
     $response->getBody()->write(Helpers\sessionjs($user, $database->getDownloads($user)));
     return $response;
@@ -158,17 +158,17 @@ return function (App $app) {
    * @return Response HTML page or error JSON
    */  
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
-    $user = $request->getAttribute('name');
+    $user = $request->getAttribute('user-info');
     $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
     $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
-        'username' => $user,
+        'username' => $user['email'],
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
         'downloadList' => $database->getDownloads($user),
-        'csrf' => $_SESSION['csrf_token']
+        'csrf' => $request->getAttribute('csrf_token')
       ];
       return $renderer->render($response, 'downloads.phtml', $viewData)->withStatus(200);
     } catch (Exception $e) {

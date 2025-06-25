@@ -63,64 +63,57 @@ function generateFileList(string $dir, array $allowedExtensions): array {
 }
 
 /**
+ * Helper to POST a token to the auth server and return the decoded response.
+ * 
+ * @param string $endpoint The endpoint path (e.g., '/token/verify' or '/token/refresh')
+ * @param string $token The token to send
+ * @param string $expectedField The field to return from the response (e.g., 'user' or 'access_token')
+ * @param mixed $logger Logger for debug (optional)
+ * @return string
+ * @throws \RuntimeException
+ */
+function postTokenToAuthServer(string $endpoint, string $token, string $expectedField, $logger = null): string {
+    $settings = require __DIR__ . '/../../config/settings.php';
+    $url = $settings['app']['auth-server'] . $endpoint;
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['token' => $token]));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+
+    $result = curl_exec($ch);
+    if ($result === false) {
+        if ($logger) $logger->error('Auth server request failed: ' . curl_error($ch));
+        throw new \RuntimeException('Auth server request failed: ' . curl_error($ch));
+    }
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        if ($logger) $logger->error('Auth server returned HTTP ' . $httpCode);
+        throw new \RuntimeException('Auth server returned HTTP ' . $httpCode);
+    }
+
+    $data = json_decode($result, true);
+    if (!is_array($data) || !$data['valid'] || empty($data[$expectedField])) {
+        if ($logger) $logger->error('Invalid response from auth server: ' . $result);
+        throw new \RuntimeException('Invalid response from auth server');
+    }
+    return (string)$data[$expectedField];
+}
+
+/**
  * parse basic auth header for username
  * 
  * @return string
  */
 function decodeToken($token, $logger): string {
-  $settings = require __DIR__ . '/../../config/settings.php';
-  $url = $settings['app']['auth-server'] . '/token/verify';
-
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_POST, true);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['token' => $token]));
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-
-  $result = curl_exec($ch);
-  if ($result === false) {
-    throw new \RuntimeException('Auth server request failed: ' . curl_error($ch));
-  }
-  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-  curl_close($ch);
-
-  if ($httpCode !== 200) {
-    throw new \RuntimeException('Auth server returned HTTP ' . $httpCode);
-  }
-
-  $data = json_decode($result, true);
-  if ($data['valid'] && !is_array($data) || empty($data['user'])) {
-    throw new \RuntimeException('Invalid response from auth server');
-  }
-  return (string)$data['user'];
+    return postTokenToAuthServer('/token/verify', $token, 'user', $logger);
 }
 
-function attemptTokenRefresh($refresh) {
-  $settings = require __DIR__ . '/../../config/settings.php';
-  $url = $settings['app']['auth-server'] . '/token/refresh';
-
-  $ch = curl_init($url);
-  curl_setopt($ch, CURLOPT_POST, true);
-  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['token' => $refresh]));
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-  curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-
-  $result = curl_exec($ch);
-  if ($result === false) {
-    throw new \RuntimeException('Auth server request failed: ' . curl_error($ch));
-  }
-  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-  curl_close($ch);
-
-  if ($httpCode !== 200) {
-    throw new \RuntimeException('Auth server returned HTTP ' . $httpCode);
-  }
-
-  $data = json_decode($result, true);
-  if ($data['valid'] && !is_array($data) || empty($data['user'])) {
-    throw new \RuntimeException('Invalid response from auth server');
-  }
-  return (string)$data['access_token'];
+function attemptTokenRefresh($refresh, $logger = null): string {
+    return postTokenToAuthServer('/token/refresh', $refresh, 'access_token', $logger);
 }
 
 /**
