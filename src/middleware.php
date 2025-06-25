@@ -116,7 +116,6 @@ return function (App $app) {
 
     if ($isSafeMethod) {
       $csrfToken = bin2hex(random_bytes(32));
-      // Set CSRF token as a cookie (not HttpOnly so JS can read it if needed)
       setcookie('csrf_token', $csrfToken, [
         'path' => '/',
         'secure' => true,
