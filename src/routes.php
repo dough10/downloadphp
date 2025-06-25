@@ -201,6 +201,16 @@ return function (App $app) {
       }
     }
 
+    $cookieParams = session_get_cookie_params();
+    setcookie('access_token', '', time() - 42000,
+      $cookieParams["path"], $cookieParams["domain"],
+      $cookieParams["secure"], $cookieParams["httponly"]
+    );
+    setcookie('refresh_token', '', time() - 42000,
+      $cookieParams["path"], $cookieParams["domain"],
+      $cookieParams["secure"], $cookieParams["httponly"]
+    );
+
     $authLogoutUrl = rtrim($settings['app']['auth-server'], '/') . '/logout';
     return $response
       ->withHeader('Location', $authLogoutUrl)
