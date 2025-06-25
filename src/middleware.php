@@ -74,11 +74,11 @@ return function (App $app) {
     
     
     try {
-      if (!filter_var($userInfo, FILTER_VALIDATE_EMAIL)) {
+      if (!filter_var($userInfo->email, FILTER_VALIDATE_EMAIL)) {
         throw new \RuntimeException('Invalid username format');
       }
       
-      $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $userInfo);
+      $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $userInfo->email);
       $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $safeUsername;
       $realPath = realpath(dirname($userPath));
       
@@ -92,7 +92,7 @@ return function (App $app) {
         if (!mkdir($userDir, 0775, true)) {
           throw new \RuntimeException('Failed to create user directory');
         }
-        $logger->info('Created directory for user: ' . $userInfo);
+        $logger->info('Created directory for user: ' . $userInfo->email);
       }
     } catch (\Exception $e) {
       $logger->error('Directory creation failed: ' . $e->getMessage());
@@ -103,7 +103,7 @@ return function (App $app) {
       );
     }
     
-    $logger->info(Helpers\getUserIP() . ' (' . $userInfo . ') ' . $request->getUri()->getPath());
+    $logger->info(Helpers\getUserIP() . ' (' . $userInfo->email . ') ' . $request->getUri()->getPath());
     return $handler->handle($request);
   });
 

@@ -159,15 +159,15 @@ return function (App $app) {
    */  
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $user = $request->getAttribute('user-info');
-    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
+    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user->email);
     $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
-        'username' => $user['email'],
+        'username' => $user->email,
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
-        'downloadList' => $database->getDownloads($user),
+        'downloadList' => $database->getDownloads($user->email),
         'csrf' => $request->getAttribute('csrf_token')
       ];
       return $renderer->render($response, 'downloads.phtml', $viewData)->withStatus(200);
