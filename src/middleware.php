@@ -78,7 +78,7 @@ return function (App $app) {
         throw new \RuntimeException('Invalid username format');
       }
       
-      $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $userInfo->email);
+      $safeUsername = Helpers\emailToPath($userInfo->email);
       $userPath = $settings['app']['file-path'] . DIRECTORY_SEPARATOR . $safeUsername;
       $realPath = realpath(dirname($userPath));
       
@@ -92,6 +92,8 @@ return function (App $app) {
         if (!mkdir($userDir, 0775, true)) {
           throw new \RuntimeException('Failed to create user directory');
         }
+        chown($userDir, 'dough10');
+        chgrp($userDir, 'www-data');
         $logger->info('Created directory for user: ' . $userInfo->email);
       }
     } catch (\Exception $e) {
