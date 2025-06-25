@@ -7,21 +7,21 @@ use Slim\Psr7\Response as SlimResponse;
 use Slim\Views\PhpRenderer;
 use App\Helpers;
 
-  function authenticate($token, $refresh, $logger) {
+function authenticate($token, $refresh, $logger) {
+  try {
+    // $logger->debug('Raw token: ' . $token);
+    return Helpers\decodeToken($token, $logger);
+  } catch(\Exception $e) {
+    $logger->debug('Decode token failed: ' . $e->getMessage());
     try {
-      // $logger->debug('Raw token: ' . $token);
+      $token = Helpers\attemptTokenRefresh($refresh);
       return Helpers\decodeToken($token, $logger);
     } catch(\Exception $e) {
-      $logger->debug('Decode token failed: ' . $e->getMessage());
-      try {
-        $token = Helpers\attemptTokenRefresh($refresh);
-        return Helpers\decodeToken($token, $logger);
-      } catch(\Exception $e) {
-        $logger->debug('Refresh token failed: ' . $e->getMessage());
-        throw new Exception($e->getMessage());
-      }
+      $logger->debug('Refresh token failed: ' . $e->getMessage());
+      throw new Exception($e->getMessage());
     }
   }
+}
 
 /**
  * Application middleware configuration
@@ -43,10 +43,6 @@ return function (App $app) {
    * @return Response Response from next middleware
    */  
   $app->add(function (Request $request, RequestHandler $handler) use ($settings, $logger): Response {
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-      session_start();
-    }
-    
     $cookies = $request->getCookieParams();
     $token = $cookies['access_token'] ?? '';
     $refresh = $cookies['refresh_token'] ?? '';
