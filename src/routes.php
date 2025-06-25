@@ -167,6 +167,7 @@ return function (App $app) {
         'email' => $user->email,
         'name' => $user->name ?? '',
         'picture' => $user->picture ?? '',
+        'grantsaccess' => $user->aud ?? [],
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
         'downloadList' => $database->getDownloads($user->email)
