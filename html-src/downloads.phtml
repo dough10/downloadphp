@@ -163,7 +163,11 @@ if ($downloadList) {
         d="M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z"/>
     </svg>
   </button>
-  <user-menu email="<?= htmlspecialchars($username, ENT_QUOTES, $char_encoding); ?>"></user-menu>
+  <user-menu 
+    email="<?= htmlspecialchars($email, ENT_QUOTES, $char_encoding); ?>"
+    name="<?= htmlspecialchars($name, ENT_QUOTES, $char_encoding); ?>"
+    picture="<?= htmlspecialchars($picture, ENT_QUOTES, $char_encoding); ?>"
+  ></user-menu>
   <script type="module" src="./app.js" async></script>
 </body>
 </html>

@@ -141,31 +141,31 @@ return function (App $app) {
   /**
    * CSRF Protection Middleware
    */
-  $app->add(function (Request $request, RequestHandler $handler): Response {
-    $method = strtoupper($request->getMethod());
-    $isSafeMethod = in_array($method, ['GET', 'HEAD', 'OPTIONS']);
+  // $app->add(function (Request $request, RequestHandler $handler): Response {
+  //   $method = strtoupper($request->getMethod());
+  //   $isSafeMethod = in_array($method, ['GET', 'HEAD', 'OPTIONS']);
 
-    if ($isSafeMethod) {
-      $csrfToken = bin2hex(random_bytes(32));
-      $request = $request->withAttribute('csrf_token', $csrfToken);
-      $response = $handler->handle($request);
-      $path = $request->getUri()->getPath();
-      if ($path === '/logout') {
-        return $response;
-      }
-      return $response->withHeader('X-CSRF-Token', $csrfToken);
-    }
+  //   if ($isSafeMethod && empty($request->getAttribute('csrf_token'))) {
+  //     $csrfToken = bin2hex(random_bytes(32));
+  //     $request = $request->withAttribute('csrf_token', $csrfToken);
+  //     $response = $handler->handle($request);
+  //     $path = $request->getUri()->getPath();
+  //     if ($path === '/logout') {
+  //       return $response;
+  //     }
+  //     return $response->withHeader('X-CSRF-Token', $csrfToken);
+  //   }
 
-    $parsedBody = $request->getParsedBody() ?? [];
-    $csrfToken = $request->getHeaderLine('X-CSRF-Token') ?? $parsedBody['csrf_token'] ?? '';
-    $expectedToken = $request->getAttribute('csrf_token');
+  //   $parsedBody = $request->getParsedBody() ?? [];
+  //   $csrfToken = $request->getHeaderLine('X-CSRF-Token') ?? $parsedBody['csrf_token'] ?? '';
+  //   $expectedToken = $request->getAttribute('csrf_token');
 
-    if (!hash_equals($expectedToken ?? '', $csrfToken)) {
-      $response = new SlimResponse();
-      $response->getBody()->write(json_encode(['error' => 'Invalid CSRF token']));
-      return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
-    }
+  //   if (!hash_equals($expectedToken ?? '', $csrfToken)) {
+  //     $response = new SlimResponse();
+  //     $response->getBody()->write(json_encode(['error' => 'Invalid CSRF token']));
+  //     return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+  //   }
 
-    return $handler->handle($request);
-  });
+  //   return $handler->handle($request);
+  // });
 };

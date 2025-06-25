@@ -3,6 +3,10 @@ namespace App\Helpers;
 
 use Slim\Psr7\Response as Response;
 
+function emailToPath($email) {
+  return str_replace(['@', '.'], ['_at_', '_dot_'], $email);
+}
+
 /**
  * Creates a list of downloadable files from a directory
  * 

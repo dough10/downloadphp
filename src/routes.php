@@ -30,7 +30,7 @@ return function (App $app) {
    */
   $app->post('/files/{file}', function (Request $request, Response $response, $args) use ($settings, $logger) {
     $user = $request->getAttribute('user-info');
-    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
+    $safeUsername = Helpers\emailToPath($user->email);
     $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     $file = $userPath . '/' . basename($args['file']);
 
@@ -71,7 +71,7 @@ return function (App $app) {
    */  
   $app->post('/request-file/{file}', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $user = $request->getAttribute('user-info');
-    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user);
+    $safeUsername = Helpers\emailToPath($user->email);
     $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     $file = $userPath . '/' . basename($args['file']);
     if (realpath($file) === false || strpos(realpath($file), realpath($userPath)) !== 0) {
@@ -83,9 +83,9 @@ return function (App $app) {
       return Helpers\jsonResponse($response, ['error' => 'File not found', 'file' => $file], 404);
     }
     try {
-      $ndx = $database->insertDownloadEntry($file, $user);
+      $ndx = $database->insertDownloadEntry($file, $user->email);
       $logger->info($request->getUri()->getPath() . ', id: ' . $ndx);
-      $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads($user)];
+      $retData = ['ndx' => $ndx, 'downloads' => $database->getDownloads($user->email)];
       return Helpers\jsonResponse($response, $retData, 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
@@ -106,7 +106,7 @@ return function (App $app) {
     try {
       $user = $request->getAttribute('user-info');
       $database->downloadStatusChanged($args['ndx'], $args['status']);
-      return Helpers\jsonResponse($response, $database->getDownloads($user), 200);
+      return Helpers\jsonResponse($response, $database->getDownloads($user->email), 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
       return Helpers\jsonResponse($response, ['error' => $e->getMessage()], 500);
@@ -125,8 +125,8 @@ return function (App $app) {
   $app->post('/reset', function (Request $request, Response $response, $args) use ($database, $logger) {
     try {
       $user = $request->getAttribute('user-info');
-      $database->clearDownloads($user);
-      return Helpers\jsonResponse($response, $database->getDownloads($user), 200);
+      $database->clearDownloads($user->email);
+      return Helpers\jsonResponse($response, $database->getDownloads($user->email), 200);
     } catch (Exception $e) {
       $logger->error($e->getMessage());
       return Helpers\jsonResponse($response, ['error' => $e->getMessage()], 500);
@@ -144,7 +144,7 @@ return function (App $app) {
   $app->get('/session.js', function (Request $request, Response $response) use ($database) {
     $user = $request->getAttribute('user-info');
     $response = $response->withHeader('Content-Type', 'application/javascript');
-    $response->getBody()->write(Helpers\sessionjs($user, $database->getDownloads($user)));
+    $response->getBody()->write(Helpers\sessionjs($user->email, $database->getDownloads($user->email)));
     return $response;
   });
 
@@ -159,12 +159,14 @@ return function (App $app) {
    */  
   $app->get('/', function (Request $request, Response $response, $args) use ($settings, $database, $logger) {
     $user = $request->getAttribute('user-info');
-    $safeUsername = str_replace(['@', '.'], ['_at_', '_dot_'], $user->email);
+    $safeUsername = Helpers\emailToPath($user->email);
     $userPath = $settings['app']['file-path'] . '/' . $safeUsername;
     try {
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
-        'username' => $user->email,
+        'email' => $user->email,
+        'name' => $user->name ?? '',
+        'picture' => $user->picture ?? '',
         'allowedExtensions' => $settings['app']['allowed-extensions'],
         'files' => Helpers\generateFileList($userPath, $settings['app']['allowed-extensions']),
         'downloadList' => $database->getDownloads($user->email),
