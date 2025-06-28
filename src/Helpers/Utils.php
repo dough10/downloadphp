@@ -119,7 +119,6 @@ function decodeToken($token, $logger): object {
         if ($logger) $logger->error('No user field in auth server response');
         throw new \RuntimeException('No user field in auth server response');
     }
-    // Return as object for consistency
     return is_array($data['user']) ? (object)$data['user'] : (object)['email' => $data['user']];
 }
 
