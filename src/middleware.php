@@ -72,8 +72,7 @@ return function (App $app) {
     
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
     $url = $protocol . $_SERVER['HTTP_HOST'];
-    print_r($userInfo->aud);
-    echo $url;
+
     if (!in_array($url, $userInfo->aud)) {
       $message = $userInfo->email . ' doe not have access to this url';
       $logger->warning($message);
