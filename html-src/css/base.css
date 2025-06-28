@@ -43,7 +43,7 @@ main>ul>li>div {
 }
 
 main>ul>li:first-of-type {
-  margin: 0 0 8px 0;
+  margin: 16px 0 8px 0;
 }
 
 .to-top {
