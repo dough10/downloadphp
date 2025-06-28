@@ -58,7 +58,6 @@ return function (App $app) {
 
     try {
       $userInfo = authenticate($token, $refresh, $logger);
-      print_r($userInfo);
     } catch (\Exception $e) {
       $message = 'Authentication failed: ' . $e->getMessage();
       $logger->warning($message);
@@ -72,7 +71,9 @@ return function (App $app) {
     }
     
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
-    $url = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    $url = $protocol . $_SERVER['HTTP_HOST'];
+    print_r($userInfo->aud);
+    echo $url;
     if (!in_array($url, $userInfo->aud)) {
       $message = $userInfo->email . ' doe not have access to this url';
       $logger->warning($message);
