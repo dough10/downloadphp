@@ -76,34 +76,34 @@ function generateFileList(string $dir, array $allowedExtensions): array {
  * @throws \RuntimeException
  */
 function postTokenToAuthServer(string $endpoint, string $token, $logger = null): array {
-    $settings = require __DIR__ . '/../../config/settings.php';
-    $url = $settings['app']['auth-server'] . $endpoint;
+  $settings = require __DIR__ . '/../../config/settings.php';
+  $url = $settings['app']['auth-server'] . $endpoint;
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['token' => $token]));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_POST, true);
+  curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['token' => $token]));
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 5);
 
-    $result = curl_exec($ch);
-    if ($result === false) {
-        if ($logger) $logger->error('Auth server request failed: ' . curl_error($ch));
-        throw new \RuntimeException('Auth server request failed: ' . curl_error($ch));
-    }
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+  $result = curl_exec($ch);
+  if ($result === false) {
+    if ($logger) $logger->error('Auth server request failed: ' . curl_error($ch));
+    throw new \RuntimeException('Auth server request failed: ' . curl_error($ch));
+  }
+  $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+  curl_close($ch);
 
-    if ($httpCode !== 200) {
-        if ($logger) $logger->error('Auth server returned HTTP ' . $httpCode);
-        throw new \RuntimeException('Auth server returned HTTP ' . $httpCode);
-    }
+  if ($httpCode !== 200) {
+    if ($logger) $logger->error('Auth server returned HTTP ' . $httpCode);
+    throw new \RuntimeException('Auth server returned HTTP ' . $httpCode);
+  }
 
-    $data = json_decode($result, true);
-    if (!is_array($data) || !$data['valid']) {
-        if ($logger) $logger->error('Invalid response from auth server: ' . $result);
-        throw new \RuntimeException('Invalid response from auth server');
-    }
-    return $data;
+  $data = json_decode($result, true);
+  if (!is_array($data) || !$data['valid']) {
+    if ($logger) $logger->error('Invalid response from auth server: ' . $result);
+    throw new \RuntimeException('Invalid response from auth server');
+  }
+  return $data;
 }
 
 /**
@@ -114,12 +114,12 @@ function postTokenToAuthServer(string $endpoint, string $token, $logger = null):
  * @return object
  */
 function decodeToken($token, $logger): object {
-    $data = postTokenToAuthServer('/token/verify', $token, $logger);
-    if (empty($data['user'])) {
-        if ($logger) $logger->error('No user field in auth server response');
-        throw new \RuntimeException('No user field in auth server response');
-    }
-    return is_array($data['user']) ? (object)$data['user'] : (object)['email' => $data['user']];
+  $data = postTokenToAuthServer('/token/verify', $token, $logger);
+  if (empty($data['user'])) {
+    if ($logger) $logger->error('No user field in auth server response');
+    throw new \RuntimeException('No user field in auth server response');
+  }
+  return is_array($data['user']) ? (object)$data['user'] : (object)['email' => $data['user']];
 }
 
 /**
@@ -130,12 +130,12 @@ function decodeToken($token, $logger): object {
  * @return string
  */
 function attemptTokenRefresh($refresh, $logger = null): string {
-    $data = postTokenToAuthServer('/token/refresh', $refresh, $logger);
-    if (empty($data['access_token'])) {
-        if ($logger) $logger->error('No access_token field in auth server response');
-        throw new \RuntimeException('No access_token field in auth server response');
-    }
-    return (string)$data['access_token'];
+  $data = postTokenToAuthServer('/token/refresh', $refresh, $logger);
+  if (empty($data['access_token'])) {
+    if ($logger) $logger->error('No access_token field in auth server response');
+    throw new \RuntimeException('No access_token field in auth server response');
+  }
+  return (string)$data['access_token'];
 }
 
 /**

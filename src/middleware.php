@@ -62,6 +62,8 @@ return function (App $app) {
       $message = 'Authentication failed: ' . $e->getMessage();
       $logger->warning($message);
       // need to make an access denied endpoint
+
+      // clean up this code
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
         'error' => $message
@@ -77,6 +79,8 @@ return function (App $app) {
       $message = $userInfo->email . ' doe not have access to this url';
       $logger->warning($message);
       // need to make an access denied endpoint
+
+      // clean up this code
       $renderer = new PhpRenderer(__DIR__ . '/../templates');
       $viewData = [
         'error' => $message
