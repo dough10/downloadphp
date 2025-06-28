@@ -1,5 +1,5 @@
 :root {
-  --font-family: 'Courier New', monospace;
+  --font-family: 'Roboto', 'Noto', sans-serif;
   --pop-rgb: 3, 3, 3;
   --main-color: rgb(var(--main-rgb));
   --pop-color: rgb(var(--pop-rgb));
@@ -45,7 +45,7 @@ body {
   margin: 0;
   color: var(--text-color);
   text-shadow: 0 0 2px var(--text-color);
-  font-size: 17px;
+  font-size: 20px;
   filter: contrast(1.2) brightness(1.1);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -89,9 +89,14 @@ header {
   transition: opacity 400ms linear;
 }
 
+body header>h1 {
+  font-family: 'Courier New', Courier, monospace;
+}
+
 main {
+  font-family: 'Courier New', Courier, monospace;
   position: fixed;
-  top: 55px;
+  top: 50px;
   left: 0;
   right: 0;
   bottom: 45px;
@@ -101,13 +106,17 @@ main {
   font-size: 1em;
   flex-direction: column;
   transition: opacity 400ms linear;
-  padding: 16px 16px 0 16px;
+  padding: 0 16px 0 16px;
   animation: flicker 100ms var(--animation-time);
 }
 
 main>div {
   white-space: pre;
   width: 100%;
+}
+
+main>div:first-of-type {
+  margin-top: 16px;
 }
 
 main>div>span {
@@ -188,10 +197,11 @@ main>div:last-of-type>.user-input::after {
 
 .letter {
   opacity: 0;
-  transition: opacity 50ms linear;
+  transition: opacity var(--letter-time, 50)ms linear;
 }
 
 .blink-container {
+  font-family: 'Courier New', Courier, monospace;
   position: fixed;
   inset: 0;
   opacity: var(--pre-opacity);
@@ -215,6 +225,11 @@ main>div:last-of-type>.user-input::after {
 .off {
   --animation-time: none;
   opacity: 0;
+}
+
+svg {
+  height: 24px;
+  width: 24x;
 }
 
 @media screen and (min-width: 3800px) {

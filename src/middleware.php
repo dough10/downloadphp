@@ -76,7 +76,7 @@ return function (App $app) {
     $url = $protocol . $_SERVER['HTTP_HOST'];
 
     if (!in_array($url, $userInfo->aud)) {
-      $message = $userInfo->email . ' doe not have access to this url';
+      $message = $userInfo->email . ' does not have access to this asset';
       $logger->warning($message);
       // need to make an access denied endpoint
 
