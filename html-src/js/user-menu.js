@@ -177,7 +177,7 @@ class UserMenu extends HTMLElement {
   connectedCallback() {
     const shadow = this.attachShadow({ mode: "open" });
     const menu_css = styleSheet(
-      `${HOST}/public/customelement/user-menu.css`
+      `${HOST}/public/user-menu.css`
     );
     menu_css.onload = _ => {
       const button = document.createElement("button");
