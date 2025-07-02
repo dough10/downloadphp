@@ -36,6 +36,7 @@ main>ul>li {
   justify-content: space-between;
   cursor: pointer;
   margin: 8px 0;
+  max-width: 100%;
 }
 
 main>ul>li>div {
