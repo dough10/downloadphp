@@ -1,13 +1,13 @@
 :root {
   --font-family: 'Roboto', 'Noto', sans-serif;
-  --pop-rgb: 3, 3, 3;
+  --pop-rgb: 166, 136, 250;
   --main-color: rgb(var(--main-rgb));
   --pop-color: rgb(var(--pop-rgb));
   --text-color: #333333;
   --main-rgb: 255, 255, 255;
   --disabled-color: #c1bebe;
   --background-color: #b9b9b9;
-  --contrast-color: #f8f8f8;
+  --contrast-color: #121212;
   --pre-opacity: 0.3;
   --power-effect-color: #000000;
   --animation-time: infinite;
@@ -20,8 +20,6 @@
     --body-color: rgb(22, 22, 22);
     --background-color: rgb(22, 22, 22);
     --main-rgb: 58, 58, 58;
-    --pop-rgb: 200, 200, 200;
-    --contrast-color: #121212;
     --pre-opacity: 0.1;
     --power-effect-color: #ffffff;
     --seperator-line: 1px solid rgba(225,225,225,0.1);
@@ -45,10 +43,8 @@ body {
   margin: 0;
   color: var(--text-color);
   text-shadow: 0 0 2px var(--text-color);
-  font-size: 20px;
+  font-size: 16px;
   filter: contrast(1.2) brightness(1.1);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
 }
 
 body::before {
@@ -89,24 +85,23 @@ header {
   transition: opacity 400ms linear;
 }
 
-body header>h1 {
+body header>h1, main {
   font-family: 'Courier New', Courier, monospace;
 }
 
 main {
-  font-family: 'Courier New', Courier, monospace;
   position: fixed;
   top: 50px;
   left: 0;
   right: 0;
-  bottom: 45px;
+  bottom: 0px;
   overflow-x: hidden;
   overflow-y: auto;
   display: flex;
-  font-size: 1em;
+  font-size: 1.5em;
   flex-direction: column;
   transition: opacity 400ms linear;
-  padding: 0 16px 0 16px;
+  padding: 0 16px 50px 16px;
   animation: flicker 100ms var(--animation-time);
 }
 
@@ -133,10 +128,11 @@ footer {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  font-size: 0.8em;
+  font-size: 0.9em;
   transition: opacity 400ms linear;
   font-family: monospace;
   text-shadow: none;
+  transform: opacity 150ms linear;
 }
 
 .power-effect {
@@ -156,8 +152,8 @@ footer {
   animation: crt-power-down 550ms linear;
 }
 
-h1 {
-  font-size: 1.5em;
+header h1 {
+  font-size: 2.2em;
 }
 
 a {
@@ -191,13 +187,14 @@ main>div:last-of-type>.user-input::after {
 
 .input {
   position: absolute;
-  left: -9999px;
   opacity: 0;
+  pointer-events: none;
+  z-index: -100;
 }
 
 .letter {
   opacity: 0;
-  transition: opacity var(--letter-time, 50)ms linear;
+  transition: opacity 20ms linear;
 }
 
 .blink-container {
@@ -239,8 +236,8 @@ svg {
 }
 
 @media screen and (max-width: 450px) {
-  body {
-    font-size: 15px;
+  main {
+    font-size: 1em;
   }
 
   .blink-frame {

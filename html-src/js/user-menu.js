@@ -1,7 +1,7 @@
 const HOST = "https://auth.dough10.me";
+
 const ME_URL = `${HOST}/me`;
 const LOGOUT_URL = "/logout";
-
 const DOWNLOAD_URL = "https://download.dough10.me";
 
 const ICON_VIEWBOX = "0 -960 960 960";
@@ -34,12 +34,6 @@ const icons = Object.freeze({
 });
 
 const menuOptions = Object.freeze([
-  {
-    name: "me",
-    icon: icons.accountSettings,
-    url: ME_URL,
-    action: link,
-  },
   {
     name: "download",
     icon: icons.download,
@@ -77,7 +71,14 @@ function styleSheet(src) {
   return link;
 }
 
-function createMenu(email, name, picture, allowed) {
+function menuHeader(email, name, picture) {
+  const button = document.createElement('button');
+  button.classList.add('small-button');
+  button.append(svg(icons.accountSettings));
+  button.addEventListener('click', _ => link(ME_URL));
+  const headerBackdrop = document.createElement('div');
+  headerBackdrop.classList.add('header-backdrop');
+  headerBackdrop.append(button);
   // left side of header
   const av = document.createElement("div");
   av.classList.add("avatar-wrapper");
@@ -105,12 +106,16 @@ function createMenu(email, name, picture, allowed) {
   hRight.append(emailEl, nameEl);
 
   const header = document.createElement("header");
-  header.append(hLeft, hRight);
+  header.addEventListener('mouseenter', _ => headerBackdrop.classList.add('backdrop-shown'));
+  header.addEventListener('mouseleave', _ => headerBackdrop.classList.remove('backdrop-shown'));
+  header.append(headerBackdrop, hLeft, hRight);
+  return header;
+}
 
-  // menu body
+function createMenu(email, name, picture, allowed) {
+  const header = menuHeader(email, name, picture);
   const nav = document.createElement("nav");
   nav.setAttribute("role", "menu");
-
   const menu = document.createElement("ul");
   for (const menuOption of menuOptions) {
     if (
@@ -126,7 +131,6 @@ function createMenu(email, name, picture, allowed) {
     li.append(icon, text);
     menu.append(li);
   }
-
   nav.append(header, menu);
   return nav;
 }
@@ -163,6 +167,7 @@ function closeMenu(menu, shadowRoot) {
   menu.classList.remove("menu-open");
   const button = shadowRoot.querySelector('.small-button');
   button.setAttribute('aria-expanded', 'false');
+  button.focus();
 }
 
 class UserMenu extends HTMLElement {
