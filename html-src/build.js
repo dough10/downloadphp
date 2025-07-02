@@ -1,7 +1,8 @@
 import './js/app.js';
 import './js/user-menu.js';
+import './css/reset.css';
+import './css/base.css';
 import './css/Terminal.css';
 import './css/Toast.css';
 import './css/button.css';
 import './css/small-button.css';
-import './css/base.css';
