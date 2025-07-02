@@ -51,9 +51,10 @@ function generateFileList(string $dir, array $allowedExtensions): array {
       }
 
       $files[] = [
+        'id' => bin2hex(random_bytes(8)),
         'name' => $entry,
         'path' => basename($filePath),
-        'size' => $stats['size'],
+        'size' => formatFileSize($stats['size']),
         'modified' => $stats['mtime']
       ];
     }

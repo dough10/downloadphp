@@ -1,3 +1,4 @@
+import Terminal from "../Terminal/Terminal.js";
 import Toast from "../Toast/Toast.js";
 import selectors from "../utils/selectors.js";
 import {initiateDialogs, destroy} from '../dialog/dialog.js';
@@ -5,6 +6,7 @@ import EventManager from "../utils/EventManager/EventManager.js";
 import sleep from "../utils/sleep.js";
 
 const em = new EventManager();
+const term = new Terminal(false);
 
 export default class UIManager {
   /**
@@ -181,18 +183,8 @@ export default class UIManager {
   /**
    * makes file list interactive
    */
-  init(fileClicked) {
+  async init(fileClicked) {
     initiateDialogs(this);
-    const files = document.querySelectorAll(selectors.file);
-    files.forEach(file => {
-      em.add(file, 'click', _ => fileClicked(file));
-      em.add(file, 'keydown', (event) => {
-        if (event.key === 'Enter' || event.key === 'Space') {
-          event.preventDefault();
-          file.click();
-        }
-      });
-    });
     const toTop = document.querySelector(selectors.toTop);
     em.add(toTop, 'click', _ => document.documentElement.scrollTo({
       top: 0,
@@ -200,5 +192,14 @@ export default class UIManager {
     }));
     
     em.add(document, 'scroll', this.documentScrolled);
+
+    for (const file of window.files) {
+      const count = term.lineWidth - (file.name.length + file.size.length);
+      const spaces = ' '.repeat(count);
+      const str = `${file.name}${spaces}${file.size}`;
+      await term.printHTML(str, `<div id='file-${file.id}' data-name='${file.name}' data-path='files/${file.path}'>${str}</div>`);
+      const target = document.querySelector(`#file-${file.id}`)
+      target.addEventListener('click', _ => fileClicked(target));
+    }
   }
 }
