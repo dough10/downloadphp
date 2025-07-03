@@ -106,6 +106,26 @@ function splitAtLastSpace(str, maxLength) {
   return [str.slice(0, idx), str.slice(idx + 1)];
 }
 
+// Encapsulated letterWidth with closure cache
+const letterWidth = (() => {
+  let lWidth = 0;
+  return function letterWidth() {
+    if (lWidth) return lWidth;
+    const div = document.createElement('div');
+    const span = document.createElement('span');
+    span.classList.add('letter');
+    span.textContent = 'A';
+    div.append(span);
+    const main = document.querySelector('main');
+    if (!main) throw new Error('<main> element not found');
+    main.append(div);
+    const rect = span.getBoundingClientRect();
+    div.remove();
+    lWidth = rect.width;
+    console.log(lWidth)
+    return lWidth;
+  };
+})();
 
 /**
  * Terminal class for managing terminal UI, input, output, and animation.
@@ -174,7 +194,7 @@ export default class Terminal extends EventTarget {
   get lineWidth() {
     // window width - padding
     const w = window.innerWidth - 32;
-    const charCount = w > 450 ? w / 14 : w / 10;
+    const charCount = w / letterWidth();
     const min = Math.min(charCount, 80);
     return Math.round(min);
   }
