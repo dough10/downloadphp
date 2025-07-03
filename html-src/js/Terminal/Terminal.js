@@ -122,7 +122,6 @@ const letterWidth = (() => {
     const rect = span.getBoundingClientRect();
     div.remove();
     lWidth = rect.width;
-    console.log(lWidth)
     return lWidth;
   };
 })();
