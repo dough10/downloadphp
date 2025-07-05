@@ -1,10 +1,12 @@
 const HOST = "https://auth.dough10.me";
 
 const ME_URL = `${HOST}/me`;
-const LOGOUT_URL = "/logout";
+const LOGOUT_URL = `${HOST}/logout`;
 const DOWNLOAD_URL = "https://download.dough10.me";
 
 const ICON_VIEWBOX = "0 -960 960 960";
+
+let ELEMENT;
 
 /**
  * check if user have access to the given url
@@ -35,13 +37,17 @@ const icons = Object.freeze({
 
 const menuOptions = Object.freeze([
   {
+    name: "me",
+    icon: icons.accountSettings,
+    url: ME_URL,
+    action: link,
+  }, {
     name: "download",
     icon: icons.download,
     url: DOWNLOAD_URL,
     action: link,
     condition: userHasAccess,
-  },
-  {
+  }, {
     name: "logout",
     icon: icons.logout,
     url: LOGOUT_URL,
@@ -72,14 +78,6 @@ function styleSheet(src) {
 }
 
 function menuHeader(email, name, picture) {
-  const button = document.createElement('button');
-  button.classList.add('small-button');
-  button.append(svg(icons.accountSettings));
-  button.addEventListener('click', _ => link(ME_URL));
-  const headerBackdrop = document.createElement('div');
-  headerBackdrop.classList.add('header-backdrop');
-  headerBackdrop.append(button);
-  // left side of header
   const av = document.createElement("div");
   av.classList.add("avatar-wrapper");
   av.textContent = "?";
@@ -91,37 +89,31 @@ function menuHeader(email, name, picture) {
       av.append(img);
     };
   }
+
   const hLeft = document.createElement("div");
   hLeft.append(av);
 
-  // right side
   const nameEl = document.createElement("div");
   nameEl.textContent = name || "Unknown";
   nameEl.classList.add("name");
+
   const emailEl = document.createElement("div");
   emailEl.textContent = email;
   emailEl.classList.add("email");
+
   const hRight = document.createElement("div");
   hRight.classList.add("flex-col");
   hRight.append(emailEl, nameEl);
 
   const header = document.createElement("header");
-  header.addEventListener('mouseenter', _ => headerBackdrop.classList.add('backdrop-shown'));
-  header.addEventListener('mouseleave', _ => headerBackdrop.classList.remove('backdrop-shown'));
-  header.append(headerBackdrop, hLeft, hRight);
+  header.append(hLeft, hRight);
   return header;
 }
 
 function createMenu(email, name, picture, allowed) {
-  const header = menuHeader(email, name, picture);
-  const nav = document.createElement("nav");
-  nav.setAttribute("role", "menu");
   const menu = document.createElement("ul");
   for (const menuOption of menuOptions) {
-    if (
-      menuOption.condition && 
-      !menuOption.condition(menuOption.url, allowed)
-    ) continue;
+    if (menuOption.condition && !menuOption.condition(menuOption.url, allowed)) continue;
     const icon = svg(menuOption.icon);
     const text = document.createElement("span");
     text.textContent = menuOption.name;
@@ -131,7 +123,9 @@ function createMenu(email, name, picture, allowed) {
     li.append(icon, text);
     menu.append(li);
   }
-  nav.append(header, menu);
+  const nav = document.createElement("nav");
+  nav.setAttribute("role", "menu");
+  nav.append(menuHeader(email, name, picture), menu);
   return nav;
 }
 
@@ -144,27 +138,28 @@ function showMenu(menu, button, shadowRoot) {
   shadowRoot.append(backdrop);
   requestAnimationFrame(_ => {
     backdrop.classList.add('backdrop-shown');
-    menu.classList.add("menu-open");
+    menu.setAttribute('open', true);
+    ELEMENT.setAttribute('open', true);
   });
 }
 
 function menuTransitionEnd(ev) {
   const menu = ev.target;
+  if (!(menu instanceof HTMLElement) || menu.tagName.toLowerCase() !== "nav") return;
   const shadowRoot = menu.parentNode;
   const backdrop = shadowRoot.querySelector('.backdrop');
   const button = shadowRoot.querySelector('.small-button');
   menu.removeEventListener('transitionend', menuTransitionEnd, true);
   button.removeAttribute('disabled');
-  requestAnimationFrame(_ => {
-    backdrop.remove();
-  });
+  requestAnimationFrame(_ => backdrop.remove());
 }
 
 function closeMenu(menu, shadowRoot) {
   menu.addEventListener('transitionend', menuTransitionEnd, true);
   const backdrop = shadowRoot.querySelector('.backdrop');
   backdrop.classList.remove('backdrop-shown');
-  menu.classList.remove("menu-open");
+  ELEMENT.removeAttribute('open');
+  menu.removeAttribute('open');
   const button = shadowRoot.querySelector('.small-button');
   button.setAttribute('aria-expanded', 'false');
   button.focus();
@@ -177,13 +172,12 @@ class UserMenu extends HTMLElement {
 
   constructor() {
     super();
+    ELEMENT = this;
   }
 
   connectedCallback() {
     const shadow = this.attachShadow({ mode: "open" });
-    const menu_css = styleSheet(
-      `${HOST}/public/css/user-menu.css`
-    );
+    const menu_css = styleSheet(`${HOST}/public/css/user-menu.css`);
     menu_css.onload = _ => {
       const button = document.createElement("button");
       button.classList.add("small-button");
@@ -210,9 +204,9 @@ class UserMenu extends HTMLElement {
         console.error(e);
         this.grantsaccess = [];
       }
-    } else {
-      this[name] = newVal;
+      return;
     }
+    this[name] = newVal;
   }
 }
 
