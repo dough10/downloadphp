@@ -6,7 +6,7 @@ import EventManager from "../utils/EventManager/EventManager.js";
 import sleep from "../utils/sleep.js";
 
 const em = new EventManager();
-const term = new Terminal(false);
+const term = new Terminal();
 
 export default class UIManager {
   /**
