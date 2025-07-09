@@ -21,33 +21,12 @@ section {
   justify-content: center;
 }
 
-div[data-name] {
-  cursor: pointer;
-}
-
 ul {
   list-style-type: none;
   list-style: none;
   list-style-image: none;
   padding-left: 0;
   margin: 0;
-}
-
-main>ul>li {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  cursor: pointer;
-  margin: 8px 0;
-  max-width: 100%;
-}
-
-main>ul>li>div {
-  white-space: pre;
-}
-
-main>ul>li:first-of-type {
-  margin: 16px 0 8px 0;
 }
 
 .to-top {
@@ -142,7 +121,7 @@ main>ul>li:first-of-type {
 #hist_but {
   position: absolute;
   right: 9px;
-  top: 6px;
+  top: 4px;
 }
   
 .spin {

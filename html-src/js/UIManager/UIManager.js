@@ -180,6 +180,17 @@ export default class UIManager {
     em.removeAll();
   }
 
+  async listdownloads() {
+    for (let i = 0; i < window.files.length; i++) {
+      const file = window.files[i];
+      const str = `${i + 1}). ${file.name} (${file.size})`;
+      await term.printHTML(str, `<div href='#' id='f${file.id}' data-name='${file.name}' data-path='files/${file.path}'>${str}</div>`);
+      // const target = document.querySelector(`#f${file.id}`)
+      // target.addEventListener('click', _ => fileClicked(target));
+    }
+    await term.promptInput('Choose:');
+  }
+ 
   /**
    * makes file list interactive
    */
@@ -190,15 +201,26 @@ export default class UIManager {
       top: 0,
       behavior: 'smooth'
     }));
-    
+
     em.add(document, 'scroll', this.documentScrolled);
+    
+    term.inputNumbers(1);
+    em.add(term, 'enter-pressed', async ev => {
+      const type = ev.detail.type;
+      const value = ev.detail.value;
+      if (value > window.files.length) {
+        await term.printline(`Invalid choice. Try again.`);
+        await term.separator();
+        await this.listdownloads();
+        return;
+      }
+      const fileEl = document.querySelector(`#f${window.files[value - 1].id}`);
+      await fileClicked(fileEl);
+      await term.printline(`Downloading ${fileEl.dataset.name}`);
+      await term.separator();
+      await this.listdownloads();
+    });
 
-    for (const file of window.files) {
-
-      const str = `${file.name} (${file.size})`;
-      await term.printHTML(str, `<a href='#' id='file-${file.id}' data-name='${file.name}' data-path='files/${file.path}'>${str}</a>`);
-      const target = document.querySelector(`#file-${file.id}`)
-      target.addEventListener('click', _ => fileClicked(target));
-    }
+    await this.listdownloads();
   }
 }

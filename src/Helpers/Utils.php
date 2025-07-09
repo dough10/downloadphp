@@ -61,7 +61,7 @@ function generateFileList(string $dir, array $allowedExtensions): array {
 
     usort($files, fn($a, $b) => $b['modified'] - $a['modified']);
 
-    return $files;
+    return array_slice($files, 0, 5);
   } finally {
     closedir($handle);
   }
