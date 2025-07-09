@@ -27,7 +27,6 @@ function dialogClicked(event, dialog) {
   var isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
     rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
   if (!isInDialog) {
-    if (sound) document.querySelector('#error').play();
     dialog.addEventListener('animationend', animationend);
     closeButton.classList.add('attention');
     dialog.classList.add('dialog-attention');

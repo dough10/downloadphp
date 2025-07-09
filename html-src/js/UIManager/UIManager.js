@@ -185,9 +185,8 @@ export default class UIManager {
       const file = window.files[i];
       const str = `${i + 1}). ${file.name} (${file.size})`;
       await term.printHTML(str, `<div href='#' id='f${file.id}' data-name='${file.name}' data-path='files/${file.path}'>${str}</div>`);
-      // const target = document.querySelector(`#f${file.id}`)
-      // target.addEventListener('click', _ => fileClicked(target));
     }
+    await term.printline("6). Clear screen")
     await term.promptInput('Choose:');
   }
  
@@ -208,17 +207,23 @@ export default class UIManager {
     em.add(term, 'enter-pressed', async ev => {
       const type = ev.detail.type;
       const value = ev.detail.value;
-      if (value > window.files.length) {
+      if (value > window.files.length + 1) {
         await term.printline(`Invalid choice. Try again.`);
         await term.separator();
         await this.listdownloads();
         return;
       }
-      const fileEl = document.querySelector(`#f${window.files[value - 1].id}`);
-      await fileClicked(fileEl);
-      await term.printline(`Downloading ${fileEl.dataset.name}`);
-      await term.separator();
-      await this.listdownloads();
+      try {
+        const fileEl = document.querySelector(`#f${window.files[value - 1].id}`);
+        await fileClicked(fileEl);
+        await term.printline(`Downloading ${fileEl.dataset.name}`);
+        await term.separator();
+        await this.listdownloads();
+      } catch {
+        await term.clear();
+        await this.listdownloads();
+        return;
+      }
     });
 
     await this.listdownloads();

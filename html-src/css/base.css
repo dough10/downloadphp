@@ -172,37 +172,6 @@ ul {
   }
 }
 
-@keyframes get-attention {
-  0% {
-    transform: scale(1);
-    color: inherit;
-  }
-
-  50% {
-    transform: scale(1.25);
-    color: red;
-  }
-
-  100% {
-    transform: scale(1);
-    color: inherit;
-  }
-}
-
-@keyframes get-dialog-attention {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.05);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
 @keyframes spin {
   from {
     transform: rotate(360deg);
