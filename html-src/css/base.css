@@ -238,8 +238,4 @@ main>ul>li:first-of-type {
   .dl-bg {
     width: initial;
   }
-
-  dialog>.button {
-    top: 15px;
-  }
 }
