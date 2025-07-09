@@ -139,36 +139,6 @@ main>ul>li:first-of-type {
   margin-top: -20px;
 }
 
-dialog>ul {
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin: 0;
-  width: 100%;
-  text-align: center;
-  min-height: 454px;
-  min-width: 370px;
-}
-
-dialog>ul>li {
-  padding: 8px 24px;
-  border-top: var(--file-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-dialog>ul>li:last-of-type {
-  border-bottom: var(--file-border);
-}
-
-dialog>.button {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  background-color: var(--card-color);
-  color: var(--text-color);
-}
-
 #hist_but {
   position: absolute;
   right: 9px;
@@ -267,10 +237,6 @@ dialog>.button {
 @media (max-width: 600px) {
   .dl-bg {
     width: initial;
-  }
-
-  dialog {
-    width: 0;
   }
 
   dialog>.button {
