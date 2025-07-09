@@ -181,12 +181,13 @@ export default class UIManager {
   }
 
   async listdownloads() {
+    await term.printline("Files:")
     for (let i = 0; i < window.files.length; i++) {
       const file = window.files[i];
-      const str = `${i + 1}). ${file.name} (${file.size})`;
+      const str = `  ${i + 1}). ${file.name} (${file.size})`;
       await term.printHTML(str, `<div href='#' id='f${file.id}' data-name='${file.name}' data-path='files/${file.path}'>${str}</div>`);
     }
-    await term.printline("6). Clear screen")
+    await term.printline("  6). Clear")
     await term.promptInput('Choose:');
   }
  
