@@ -138,8 +138,8 @@ function showMenu(menu, button, shadowRoot) {
   shadowRoot.append(backdrop);
   requestAnimationFrame(_ => {
     backdrop.classList.add('backdrop-shown');
-    menu.setAttribute('open', true);
-    ELEMENT.setAttribute('open', true);
+    menu.toggleAttribute('open');
+    ELEMENT.toggleAttribute('open');
   });
 }
 
@@ -177,7 +177,7 @@ class UserMenu extends HTMLElement {
 
   connectedCallback() {
     const shadow = this.attachShadow({ mode: "open" });
-    const menu_css = styleSheet(`${HOST}/public/css/user-menu.css`);
+    const menu_css = styleSheet(`${HOST}/public/css/user-menu.min.css`);
     menu_css.onload = _ => {
       const button = document.createElement("button");
       button.classList.add("small-button");

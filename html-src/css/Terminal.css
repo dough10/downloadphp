@@ -103,7 +103,6 @@ main {
   transition: opacity 400ms linear;
   padding: 0 16px 50px 16px;
   animation: flicker 100ms var(--animation-time);
-  text-align: center;
 }
 
 main>div {

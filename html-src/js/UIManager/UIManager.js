@@ -194,10 +194,9 @@ export default class UIManager {
     em.add(document, 'scroll', this.documentScrolled);
 
     for (const file of window.files) {
-      const count = term.lineWidth - (file.name.length + file.size.length);
-      const spaces = ' '.repeat(count);
-      const str = `${file.name}${spaces}${file.size}`;
-      await term.printHTML(str, `<div id='file-${file.id}' data-name='${file.name}' data-path='files/${file.path}'>${str}</div>`);
+
+      const str = `${file.name} (${file.size})`;
+      await term.printHTML(str, `<a href='#' id='file-${file.id}' data-name='${file.name}' data-path='files/${file.path}'>${str}</a>`);
       const target = document.querySelector(`#file-${file.id}`)
       target.addEventListener('click', _ => fileClicked(target));
     }
