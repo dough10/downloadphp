@@ -132,11 +132,11 @@ function decodeToken($token, $logger): object {
  */
 function attemptTokenRefresh($refresh, $logger = null): string {
   $data = postTokenToAuthServer('/token/refresh', $refresh, $logger);
-  if (empty($data['access_token'])) {
+  if (empty($data['token'])) {
     if ($logger) $logger->error('No access_token field in auth server response');
     throw new \RuntimeException('No access_token field in auth server response');
   }
-  return (string)$data['access_token'];
+  return (string)$data['token'];
 }
 
 /**
