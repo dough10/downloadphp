@@ -18,7 +18,7 @@ use App\Helpers;
   <link rel="stylesheet" href="./base.css">
   <link rel="preload" href="https://auth.dough10.me/public/css/user-menu.min.css" as="style">
   <script>
-    window.files = <?= json_encode($files)?>
+    window.files = Object.freeze(<?= json_encode($files)?>);
   </script>
 </head>
 <body>
@@ -47,9 +47,7 @@ use App\Helpers;
       </svg>
     </button> 
   </header>
-  <main>
-    <ul></ul>
-  </main>
+  <main></main>
   <input type="text">
   <footer>
     <svg 
