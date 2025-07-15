@@ -9,7 +9,6 @@ use App\Helpers;
 
 function authenticate($token, $refresh, $logger) {
   try {
-    // $logger->debug('Raw token: ' . $token);
     return Helpers\decodeToken($token, $logger);
   } catch(\Exception $e) {
     $logger->debug('Decode token failed: ' . $e->getMessage());
@@ -75,19 +74,19 @@ return function (App $app) {
     $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
     $url = $protocol . $_SERVER['HTTP_HOST'];
 
-    if (!in_array($url, $userInfo->aud)) {
-      $message = $userInfo->email . ' does not have access to this asset';
-      $logger->warning($message);
-      // need to make an access denied endpoint
+    // if (!in_array($url, $userInfo->aud)) {
+    //   $message = $userInfo->email . ' does not have access to this asset';
+    //   $logger->warning($message);
+    //   // need to make an access denied endpoint
 
-      // clean up this code
-      $renderer = new PhpRenderer(__DIR__ . '/../templates');
-      $viewData = [
-        'error' => $message
-      ];
-      $response = new SlimResponse();
-      return $renderer->render($response, 'error.phtml', $viewData)->withStatus(403);
-    }
+    //   // clean up this code
+    //   $renderer = new PhpRenderer(__DIR__ . '/../templates');
+    //   $viewData = [
+    //     'error' => $message
+    //   ];
+    //   $response = new SlimResponse();
+    //   return $renderer->render($response, 'error.phtml', $viewData)->withStatus(403);
+    // }
     
     $request = $request->withAttribute('user-info', $userInfo);
     
